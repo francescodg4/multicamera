@@ -1,0 +1,17 @@
+{
+    "image": "qt6-opencv:v1.0",
+    "runArgs": [
+        "--gpus=all" // or remove if not using GPUs
+    ],
+    "containerEnv": {
+        "WAYLAND_DISPLAY": ""
+    },
+    "customizations": {
+        "vscode": {
+            "extensions": [
+                "ms-vscode.cpptools",
+                "ms-vscode.cmake-tools"
+            ]
+        }
+    }
+}
