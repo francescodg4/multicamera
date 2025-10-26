@@ -1,5 +1,7 @@
 {
-    "image": "qt6-opencv:v1.0",
+    "build": {
+        "dockerfile": "Dockerfile"
+    },
     "runArgs": [
         "--gpus=all" // or remove if not using GPUs
     ],
