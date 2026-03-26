@@ -53,6 +53,24 @@ target_include_directories(cameras PUBLIC ${CMAKE_CURRENT_SOURCE_DIR}/src)
 target_link_libraries(cameras PUBLIC Qt6::Gui PRIVATE PkgConfig::GST)
 project_warnings(cameras)
 
+# ---- the multicamera inspection system
+qt_add_library(inspection STATIC
+  src/inspector/CameraGrid.cpp src/inspector/CameraGrid.hpp
+  src/inspector/CameraTile.cpp src/inspector/CameraTile.hpp
+  src/inspector/InspectionWindow.cpp src/inspector/InspectionWindow.hpp
+)
+target_link_libraries(inspection PUBLIC themes cameras)
+project_warnings(inspection)
+
+qt_add_executable(inspector src/inspector/main.cpp)
+target_compile_definitions(inspector PRIVATE
+  INSPECTOR_VERSION="${PROJECT_VERSION}"
+  INSPECTOR_VIDEOS_DIR="${CMAKE_CURRENT_SOURCE_DIR}/videos")
+target_link_libraries(inspector PRIVATE inspection)
+project_warnings(inspector)
+
+set_target_properties(inspector PROPERTIES WIN32_EXECUTABLE ON MACOSX_BUNDLE ON)
+install(TARGETS inspector RUNTIME DESTINATION bin BUNDLE DESTINATION .)
 
 # ---- tests
 if(BUILD_TESTING)
@@ -65,5 +83,10 @@ if(BUILD_TESTING)
     project_warnings(tst_camerapipeline)
     add_test(NAME camerapipeline COMMAND tst_camerapipeline)
 
+    qt_add_executable(tst_inspectionwindow tests/tst_InspectionWindow.cpp)
+    target_link_libraries(tst_inspectionwindow PRIVATE inspection Qt6::Test)
+    project_warnings(tst_inspectionwindow)
+    add_test(NAME inspectionwindow COMMAND tst_inspectionwindow)
+    set_tests_properties(inspectionwindow PROPERTIES ENVIRONMENT "QT_QPA_PLATFORM=offscreen")
   endif()
 endif()

@@ -1,0 +1,45 @@
+#pragma once
+
+#include <QPixmap>
+#include <QWidget>
+
+class CameraPipeline;
+
+/// One camera on the board: its pictures on the screen of a card drawn by the interface design,
+/// with a status lamp, the time and picture number of what is shown. Click selects the camera,
+/// double click maximises it.
+class CameraTile : public QWidget {
+    Q_OBJECT
+public:
+    explicit CameraTile(CameraPipeline* camera, QWidget* parent = nullptr);
+
+    CameraPipeline* camera() const { return m_camera; }
+
+    bool isSelected() const { return m_selected; }
+    void setSelected(bool selected);
+
+    QSize sizeHint() const override;
+    QSize minimumSizeHint() const override;
+
+signals:
+    void clicked();
+    void doubleClicked();
+
+protected:
+    void paintEvent(QPaintEvent* event) override;
+    void resizeEvent(QResizeEvent* event) override;
+    void moveEvent(QMoveEvent* event) override;
+    void changeEvent(QEvent* event) override;
+    void mousePressEvent(QMouseEvent* event) override;
+    void mouseDoubleClickEvent(QMouseEvent* event) override;
+
+private:
+    QRect cardRect() const; ///< the card, inset so the selection mark can spill round it
+    QRect screenRect() const; ///< the display on the card
+    void paintChrome(); ///< card, display and selection mark, cached in m_chrome
+    void paintOverlay(QPainter& p, const QRect& screen);
+
+    CameraPipeline* m_camera;
+    bool m_selected = false;
+    QPixmap m_chrome;
+};
