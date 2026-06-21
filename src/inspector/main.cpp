@@ -58,8 +58,9 @@ int main(int argc, char* argv[])
     const QCommandLineOption columnsOption("columns", "Columns of the camera board (default: automatic).", "n", "0");
     const QCommandLineOption selectOption("select", "Camera to inspect at start (1 is the first).", "n");
     const QCommandLineOption pausedOption("paused", "Do not start the cameras.");
-    const QCommandLineOption screenshotOption("screenshot", "Save the window as inspector-<theme>.png in <dir> and quit; --theme all saves every interface.", "dir");
-    parser.addOptions({ themeOption, videosOption, testOption, columnsOption, selectOption, pausedOption, screenshotOption });
+    const QCommandLineOption modeOption("mode", "light or dark, for the interfaces that have both (default: the last one selected).", "mode");
+    const QCommandLineOption screenshotOption("screenshot", "Save the window as inspector-<theme>.png in <dir> and quit; --theme all saves every interface (both modes unless --mode is given).", "dir");
+    parser.addOptions({ themeOption, modeOption, videosOption, testOption, columnsOption, selectOption, pausedOption, screenshotOption });
     parser.process(app);
 
     const QString requested = parser.value(themeOption);
@@ -67,7 +68,13 @@ int main(int argc, char* argv[])
         qWarning("Unknown theme '%s' (available: %s)", qPrintable(requested), qPrintable(ids.join(QStringLiteral(", "))));
         return 1;
     }
-    const QStringList themes = requested == QLatin1String("all") ? ids : QStringList { requested.isEmpty() ? Themes::saved() : requested };
+    const QString mode = parser.value(modeOption);
+    if (!mode.isEmpty() && mode != QLatin1String("light") && mode != QLatin1String("dark")) {
+        qWarning("Unknown mode '%s' (light or dark)", qPrintable(mode));
+        return 1;
+    }
+    const bool dark = mode.isEmpty() ? Themes::savedDark() : mode == QLatin1String("dark");
+    const QList<Themes::Look> looks = Themes::looks(requested.isEmpty() ? Themes::saved() : requested, dark, requested == QLatin1String("all") && mode.isEmpty());
 
     const QStringList missing = CameraPipeline::missingElements();
     if (!missing.isEmpty()) {
@@ -82,7 +89,7 @@ int main(int argc, char* argv[])
     }
 
     InspectionWindow window(sources);
-    window.setTheme(themes.first());
+    window.setTheme(looks.first().id, looks.first().dark);
     window.grid()->setColumns(parser.value(columnsOption).toInt());
     window.show();
     if (!parser.isSet(pausedOption)) {
@@ -97,10 +104,10 @@ int main(int argc, char* argv[])
             settle(2500); // let every camera preroll and play a little
             const QDir dir(parser.value(screenshotOption));
             dir.mkpath(QStringLiteral("."));
-            for (const QString& id : themes) {
-                window.setTheme(id);
+            for (const Themes::Look& look : looks) {
+                window.setTheme(look.id, look.dark);
                 settle(500);
-                window.grab().save(dir.filePath(QStringLiteral("inspector-%1.png").arg(id)));
+                window.grab().save(dir.filePath(QStringLiteral("inspector-%1.png").arg(look.name())));
             }
             QApplication::quit();
         });

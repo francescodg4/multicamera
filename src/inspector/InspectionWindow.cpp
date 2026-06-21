@@ -202,6 +202,11 @@ void InspectionWindow::createMenus()
         m_themeActions->addAction(action);
         connect(action, &QAction::triggered, this, [this, id = theme.id] { chooseTheme(id); });
     }
+    interfaces->addSeparator();
+    m_darkAction = interfaces->addAction(tr("&Dark mode"));
+    m_darkAction->setCheckable(true);
+    m_darkAction->setShortcut(QKeySequence(Qt::CTRL | Qt::Key_D));
+    connect(m_darkAction, &QAction::triggered, this, &InspectionWindow::chooseDark);
 
     QMenu* help = menuBar()->addMenu(tr("&Help"));
     connect(help->addAction(tr("&Keyboard")), &QAction::triggered, this, [this] {
@@ -217,6 +222,7 @@ void InspectionWindow::createMenus()
                "<tr><td><b>F</b></td><td>maximise the camera (or double click it)</td></tr>"
                "<tr><td><b>Ctrl+P</b> / <b>Ctrl+Shift+P</b> / <b>Ctrl+.</b></td><td>play / pause / stop all</td></tr>"
                "<tr><td><b>Ctrl+1</b> … <b>Ctrl+3</b></td><td>interface design</td></tr>"
+               "<tr><td><b>Ctrl+D</b></td><td>dark / light mode</td></tr>"
                "</table>"));
     });
     connect(help->addAction(tr("&About")), &QAction::triggered, this, [this] {
@@ -266,6 +272,10 @@ QGroupBox* InspectionWindow::controlBox()
     m_themeSelector->setToolTip(tr("Interface design (Ctrl+1, 2, 3)"));
     connect(m_themeSelector, &QComboBox::currentIndexChanged, this, [this] { chooseTheme(m_themeSelector->currentData().toString()); });
 
+    m_darkBox = new QCheckBox(tr("Dark"));
+    m_darkBox->setToolTip(tr("Dark or light mode, for the designs that have both (Ctrl+D)"));
+    connect(m_darkBox, &QCheckBox::toggled, this, &InspectionWindow::chooseDark);
+
     auto* row = new QHBoxLayout(box);
     row->addWidget(m_playAllButton);
     row->addWidget(m_pauseAllButton);
@@ -278,6 +288,7 @@ QGroupBox* InspectionWindow::controlBox()
     row->addStretch(1);
     row->addWidget(new QLabel(tr("Design")));
     row->addWidget(m_themeSelector);
+    row->addWidget(m_darkBox);
     return box;
 }
 
@@ -492,13 +503,14 @@ void InspectionWindow::endScrub()
 
 // ---- interface ----------------------------------------------------------------------------------
 
-void InspectionWindow::setTheme(const QString& id)
+void InspectionWindow::setTheme(const QString& id, bool dark)
 {
     const ThemeEntry* theme = Themes::find(id);
-    if (!theme || !Themes::apply(id)) {
+    if (!theme || !Themes::apply(id, dark)) {
         return;
     }
     m_theme = id;
+    m_dark = dark;
     {
         const QSignalBlocker block(m_themeSelector);
         m_themeSelector->setCurrentIndex(m_themeSelector->findData(id));
@@ -506,15 +518,28 @@ void InspectionWindow::setTheme(const QString& id)
     for (QAction* action : m_themeActions->actions()) {
         action->setChecked(action->data().toString() == id);
     }
-    statusBar()->showMessage(tr("Interface: %1").arg(theme->name), 4000);
+    {
+        const QSignalBlocker block(m_darkBox);
+        m_darkBox->setChecked(dark);
+    }
+    m_darkAction->setChecked(dark);
+    m_darkBox->setEnabled(theme->modes);
+    m_darkAction->setEnabled(theme->modes);
+    statusBar()->showMessage(theme->modes ? tr("Interface: %1, %2 mode").arg(theme->name, dark ? tr("dark") : tr("light")) : tr("Interface: %1").arg(theme->name), 4000);
     tintIcons();
     update();
 }
 
 void InspectionWindow::chooseTheme(const QString& id)
 {
-    setTheme(id);
+    setTheme(id, m_dark);
     Themes::save(id);
+}
+
+void InspectionWindow::chooseDark(bool dark)
+{
+    setTheme(m_theme, dark);
+    Themes::saveDark(dark);
 }
 
 void InspectionWindow::tintIcons()

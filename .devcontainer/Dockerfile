@@ -11,4 +11,5 @@ RUN apt-get update \
         gstreamer1.0-x \
         gstreamer1.0-tools \
         fonts-dejavu-core \
+        fonts-inter \
     && rm -rf /var/lib/apt/lists/*

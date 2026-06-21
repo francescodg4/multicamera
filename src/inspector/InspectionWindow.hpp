@@ -29,8 +29,10 @@ public:
     CameraGrid* grid() const { return m_grid; }
 
     QString theme() const { return m_theme; }
-    /// Draws the whole application with the design of theme @p id.
-    void setTheme(const QString& id);
+    bool isDark() const { return m_dark; }
+    /// Draws the whole application with the design of theme @p id, in its dark or light mode if
+    /// it has two.
+    void setTheme(const QString& id, bool dark);
 
     /// The camera under inspection (null if none is selected).
     CameraPipeline* current() const;
@@ -51,6 +53,7 @@ private:
     QGroupBox* controlBox();
     QGroupBox* inspectionBox();
     void chooseTheme(const QString& id); ///< user choice: applied and remembered
+    void chooseDark(bool dark); ///< user choice: applied and remembered
     void toggleMaximized(int index);
     void tintIcons(); ///< button icons follow the text colour of the interface
 
@@ -67,15 +70,18 @@ private:
     int m_current = -1;
     QList<QMetaObject::Connection> m_currentConnections;
     QString m_theme;
+    bool m_dark = true;
 
     // control room
     QComboBox* m_themeSelector = nullptr;
+    QCheckBox* m_darkBox = nullptr;
     QComboBox* m_layout = nullptr;
     QCheckBox* m_loop = nullptr;
     QPushButton* m_playAllButton = nullptr;
     QPushButton* m_pauseAllButton = nullptr;
     QPushButton* m_stopAllButton = nullptr;
     QActionGroup* m_themeActions = nullptr;
+    QAction* m_darkAction = nullptr;
 
     // inspection panel
     QGroupBox* m_inspection = nullptr;

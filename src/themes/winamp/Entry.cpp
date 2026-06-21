@@ -11,7 +11,7 @@ ThemeEntry themeEntry()
         QStringLiteral("winamp"),
         QCoreApplication::translate("Themes", "Winamp"),
         QCoreApplication::translate("Themes", "Winamp Modern skin: brushed metal, capsule buttons, cobalt LCD glass with glowing text, LEDs and VU segments."),
-        []() -> WidgetStyle* { return new Style; },
+        [](bool) -> WidgetStyle* { return new Style; },
     };
 }
 

@@ -4,6 +4,7 @@
 #include "inspector/CameraTile.hpp"
 #include "inspector/InspectionWindow.hpp"
 
+#include <QApplication>
 #include <QSlider>
 #include <QTest>
 
@@ -30,7 +31,7 @@ private slots:
     void init()
     {
         m_window = std::make_unique<InspectionWindow>(CameraSource::discover(QString(), 3));
-        m_window->setTheme(Themes::all().first().id);
+        m_window->setTheme(Themes::all().first().id, true);
         m_window->show();
         QApplication::setActiveWindow(m_window.get());
         QVERIFY(QTest::qWaitForWindowExposed(m_window.get()));
@@ -133,11 +134,27 @@ private slots:
     void everyTheme()
     {
         m_window->select(0);
-        for (const ThemeEntry& theme : Themes::all()) {
-            m_window->setTheme(theme.id);
-            QCOMPARE(m_window->theme(), theme.id);
+        for (const Themes::Look& look : Themes::looks(QStringLiteral("all"), true, true)) {
+            m_window->setTheme(look.id, look.dark);
+            QCOMPARE(m_window->theme(), look.id);
+            QCOMPARE(m_window->isDark(), look.dark);
             QVERIFY(!m_window->grab().isNull());
         }
+    }
+
+    void revolutHasTwoModes()
+    {
+        QVERIFY(!Themes::find(QStringLiteral("emerald")));
+        const ThemeEntry* revolut = Themes::find(QStringLiteral("revolut"));
+        QVERIFY(revolut && revolut->modes);
+        m_window->setTheme(revolut->id, true);
+        const QColor dark = QApplication::palette().color(QPalette::Window);
+        m_window->setTheme(revolut->id, false);
+        const QColor light = QApplication::palette().color(QPalette::Window);
+        QVERIFY(dark.lightness() < 40);
+        QVERIFY(light.lightness() > 220);
+        QCOMPARE(Themes::looks(revolut->id, true, true).size(), 2);
+        QCOMPARE(Themes::looks(QStringLiteral("glass"), true, true).size(), 1);
     }
 
 private:

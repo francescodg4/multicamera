@@ -16,6 +16,7 @@ public:
         bool hover = false;
         bool pressed = false;
         bool focus = false;
+        bool focusVisible = false; ///< focus that came from the keyboard (the web's :focus-visible)
         bool checked = false; ///< toggled on, selected
     };
 

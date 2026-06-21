@@ -11,7 +11,7 @@ ThemeEntry themeEntry()
         QStringLiteral("glass"),
         QCoreApplication::translate("Themes", "Liquid Glass"),
         QCoreApplication::translate("Themes", "Frosted cards over a live ambient canvas, recessed glass fields, clay controls and radiant highlights."),
-        []() -> WidgetStyle* { return new Style; },
+        [](bool) -> WidgetStyle* { return new Style; },
     };
 }
 

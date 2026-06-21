@@ -1,17 +1,18 @@
 #pragma once
 
 #include "WidgetStyle.hpp"
+#include "themes/revolut/Theme.hpp"
 
-#include <QImage>
+namespace revolut {
 
-namespace emerald {
-
-/// The standard widgets as GBA storage-box parts, drawn on the 2× pixel grid: capsule keys that
-/// sink into their hard shadow, lined-paper text boxes, a CRT display, an HP-bar progress,
-/// highlighted tiles for selection and cards under pill-shaped box banners.
+/// The standard widgets in the Revolut.com interface, Idetica identity: flat tinted cards under
+/// small uppercase eyebrows, pill buttons (violet for the primary action), white app widgets,
+/// amber focus rings. In a light or a dark mode.
 class Style : public WidgetStyle {
 public:
-    Style();
+    explicit Style(bool dark);
+
+    const Theme::Palette& colors() const { return c; }
 
     QFont font() const override;
     QPalette standardPalette() const override;
@@ -19,6 +20,7 @@ public:
     void window(QPainter& p, const QWidget* widget, const QRect& rect) const override;
     void card(QPainter& p, const QWidget* widget, const QRect& rect, const QRect& titleRect, const QString& title) const override;
     void button(QPainter& p, const QRect& rect, Button kind, const Look& look) const override;
+    QColor buttonText(Button kind, const Look& look, const QPalette& palette) const override;
     void field(QPainter& p, const QRect& rect, const Look& look) const override;
     void view(QPainter& p, const QRect& rect, const Look& look) const override;
     void check(QPainter& p, const QRect& rect, Qt::CheckState state, const Look& look) const override;
@@ -45,7 +47,12 @@ public:
     void lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const override;
 
 private:
-    mutable QImage m_wallpaper; ///< the window's tiled wallpaper, for its current size
+    /// Pill or rounded surface, optionally with an amber focus ring round it.
+    void surface(QPainter& p, const QRectF& rect, qreal radius, const QColor& fill, const QColor& border = Qt::transparent, bool focusRing = false) const;
+    /// Soft drop shadow (--rui-shadow-level*) under a rounded shape, on light only.
+    void shadow(QPainter& p, const QRectF& rect, qreal radius, int level) const;
+
+    Theme::Palette c;
 };
 
-} // namespace emerald
+} // namespace revolut

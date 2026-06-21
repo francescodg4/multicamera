@@ -27,6 +27,7 @@ WidgetStyle::Look lookOf(const QStyleOption* option)
     look.hover = look.enabled && (option->state & QStyle::State_MouseOver);
     look.pressed = look.enabled && (option->state & QStyle::State_Sunken);
     look.focus = look.enabled && (option->state & QStyle::State_HasFocus);
+    look.focusVisible = look.focus && (option->state & QStyle::State_KeyboardFocusChange);
     look.checked = option->state & QStyle::State_On;
     return look;
 }
