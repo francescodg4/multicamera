@@ -1,6 +1,7 @@
 #include "inspector/CameraTile.hpp"
 
 #include "WidgetStyle.hpp"
+#include "inspector/CameraControls.hpp"
 #include "inspector/CameraPipeline.hpp"
 
 #include <QFontDatabase>
@@ -72,13 +73,19 @@ CameraTile::CameraTile(CameraPipeline* camera, QWidget* parent)
     // a new picture only repaints the screen; a new state also the lamp
     connect(camera, &CameraPipeline::frameReady, this, [this] { update(screenRect()); });
     connect(camera, &CameraPipeline::stateChanged, this, [this] { update(); });
+
+    m_controls = new CameraControls(camera, this);
+    m_controls->setCursor(Qt::ArrowCursor);
+    m_controls->hide();
 }
 
 void CameraTile::setSelected(bool selected)
 {
     if (m_selected != selected) {
         m_selected = selected;
-        m_chrome = QPixmap();
+        m_chrome = QPixmap(); // the screen changes size
+        layoutControls();
+        m_controls->setVisible(selected);
         update();
     }
 }
@@ -102,7 +109,30 @@ QRect CameraTile::screenRect() const
 {
     const auto* style = qobject_cast<const WidgetStyle*>(this->style());
     const WidgetStyle::Metrics m = style ? style->metrics() : WidgetStyle::Metrics {};
-    return cardRect().adjusted(m.margin, m.title + m.spacing / 2, -m.margin, -m.margin);
+    QRect screen = cardRect().adjusted(m.margin, m.title + m.spacing / 2, -m.margin, -m.margin);
+    if (m_selected) {
+        screen.setBottom(controlsRect().top() - m.spacing / 2 - 1); // the picture gives way to the controls
+    }
+    return screen;
+}
+
+QRect CameraTile::controlsRect() const
+{
+    const auto* style = qobject_cast<const WidgetStyle*>(this->style());
+    const WidgetStyle::Metrics m = style ? style->metrics() : WidgetStyle::Metrics {};
+    const QRect card = cardRect();
+    const int height = std::max(m.control, m_controls->sizeHint().height());
+    return { card.left() + m.margin, card.bottom() - m.margin - height + 1, card.width() - 2 * m.margin, height };
+}
+
+void CameraTile::layoutControls()
+{
+    const QRect band = controlsRect();
+    if (m_controls->geometry() != band) {
+        m_controls->setGeometry(band);
+        m_chrome = QPixmap(); // the screen follows the band
+        update();
+    }
 }
 
 void CameraTile::paintChrome()
@@ -177,8 +207,8 @@ void CameraTile::paintOverlay(QPainter& p, const QRect& screen)
     p.setPen(Qt::white);
     p.drawText(top.adjusted(LampSize + 12, 0, 0, 0), Qt::AlignLeft | Qt::AlignVCenter, name);
 
-    // time and picture number, bottom left
-    if (state == CameraPipeline::State::Stopped) {
+    // time and picture number, bottom left (the controls show them for the selected camera)
+    if (state == CameraPipeline::State::Stopped || m_selected) {
         return;
     }
     const QString time = QStringLiteral("%1  #%2").arg(CameraPipeline::timecode(m_camera->position())).arg(m_camera->frameNumber());
@@ -190,6 +220,7 @@ void CameraTile::paintOverlay(QPainter& p, const QRect& screen)
 void CameraTile::resizeEvent(QResizeEvent* event)
 {
     m_chrome = QPixmap();
+    layoutControls();
     QWidget::resizeEvent(event);
 }
 
@@ -206,6 +237,8 @@ void CameraTile::changeEvent(QEvent* event)
     case QEvent::PaletteChange:
     case QEvent::FontChange:
         m_chrome = QPixmap();
+        // the controls are restyled after the tile: place them once they have their new size
+        QMetaObject::invokeMethod(this, &CameraTile::layoutControls, Qt::QueuedConnection);
         update();
         break;
     default:

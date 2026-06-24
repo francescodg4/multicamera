@@ -1,10 +1,12 @@
 #include "ThemeRegistry.hpp"
+#include "inspector/CameraControls.hpp"
 #include "inspector/CameraGrid.hpp"
 #include "inspector/CameraPipeline.hpp"
 #include "inspector/CameraTile.hpp"
 #include "inspector/InspectionWindow.hpp"
 
 #include <QApplication>
+#include <QPushButton>
 #include <QSlider>
 #include <QTest>
 
@@ -87,19 +89,66 @@ private slots:
     {
         m_window->select(2);
         CameraPipeline* camera = m_window->current();
-        auto* timeBar = m_window->findChild<QSlider*>();
-        QVERIFY(timeBar);
-        QVERIFY(timeBar->isEnabled());
+        QSlider* timeBar = m_window->grid()->tiles()[2]->controls()->timeBar();
+        QVERIFY(timeBar->isVisible());
         QCOMPARE(timeBar->maximum(), CameraSource::TestSeconds * 1000);
         timeBar->setValue(2000); // as the keyboard or a click on the bar does
         QTRY_COMPARE(camera->position(), 2000 * Ms);
         QCOMPARE(camera->frameNumber(), qint64(2 * CameraSource::TestFps));
     }
 
+    void controlButtonsDriveTheirCamera()
+    {
+        m_window->select(1);
+        CameraControls* controls = m_window->grid()->tiles()[1]->controls();
+        const QList<QPushButton*> buttons = controls->findChildren<QPushButton*>();
+        QCOMPARE(buttons.size(), 4); // previous, play, stop, next
+        CameraPipeline* camera = m_window->cameras()[1];
+        buttons[3]->click(); // next: a stopped camera pauses on its first picture
+        QTRY_VERIFY(!camera->frame().isNull());
+        buttons[3]->click();
+        QTRY_COMPARE(camera->frameNumber(), qint64(1));
+        buttons[1]->click();
+        QCOMPARE(camera->state(), CameraPipeline::State::Playing);
+        buttons[2]->click();
+        QCOMPARE(camera->state(), CameraPipeline::State::Stopped);
+        QCOMPARE(m_window->cameras()[0]->state(), CameraPipeline::State::Stopped); // only its own camera
+    }
+
+    void controlsFollowTheSelection()
+    {
+        const QList<CameraTile*>& tiles = m_window->grid()->tiles();
+        for (CameraTile* tile : tiles) {
+            QVERIFY(!tile->controls()->isVisible());
+        }
+        QTest::mouseClick(tiles[0], Qt::LeftButton, {}, tiles[0]->rect().center());
+        QVERIFY(tiles[0]->controls()->isVisible());
+        QVERIFY(!tiles[1]->controls()->isVisible());
+        QTest::mouseClick(tiles[1], Qt::LeftButton, {}, tiles[1]->rect().center());
+        QVERIFY(!tiles[0]->controls()->isVisible()); // focus moved away: its controls go
+        QVERIFY(tiles[1]->controls()->isVisible());
+        QTest::keyClick(m_window.get(), Qt::Key_Escape);
+        QVERIFY(!tiles[1]->controls()->isVisible());
+    }
+
+    void pictureMakesRoomForTheControls()
+    {
+        CameraTile* tile = m_window->grid()->tiles()[0];
+        const QRect whole = tile->screenRect();
+        m_window->select(0);
+        const QRect smaller = tile->screenRect();
+        const QRect controls = tile->controls()->geometry();
+        QVERIFY2(smaller.height() < whole.height(), "the picture shrinks");
+        QCOMPARE(smaller.top(), whole.top());
+        QVERIFY2(!smaller.intersects(controls), "the controls never cover the picture");
+        QVERIFY2(whole.intersects(controls), "they take the bottom of the card");
+        QVERIFY(tile->rect().contains(controls));
+        m_window->select(-1);
+        QCOMPARE(tile->screenRect(), whole);
+    }
+
     void noCameraNoTransport()
     {
-        auto* timeBar = m_window->findChild<QSlider*>();
-        QVERIFY(!timeBar->isEnabled());
         QTest::keyClick(m_window.get(), Qt::Key_E); // nothing to step: nothing happens
         for (CameraPipeline* camera : m_window->cameras()) {
             QCOMPARE(camera->state(), CameraPipeline::State::Stopped);

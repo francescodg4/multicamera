@@ -3,7 +3,6 @@
 #include "inspector/CameraSource.hpp"
 
 #include <QMainWindow>
-#include <QTimer>
 
 class CameraGrid;
 class CameraPipeline;
@@ -11,15 +10,12 @@ class QAction;
 class QActionGroup;
 class QCheckBox;
 class QComboBox;
-class QGroupBox;
-class QLCDNumber;
-class QLabel;
 class QPushButton;
-class QSlider;
 
 /// The multicamera inspection system: a control room (all cameras at once, board layout,
-/// interface design), the board of cameras, and an inspection panel for the camera clicked on
-/// (transport, time bar, picture readouts; E steps one picture forward, Q one back).
+/// interface design and mode) over the board of cameras. The camera clicked is inspected: its
+/// player controls show over the bottom of its card, and the keyboard drives it (E steps one
+/// picture forward, Q one back).
 class InspectionWindow : public QMainWindow {
     Q_OBJECT
 public:
@@ -50,25 +46,15 @@ protected:
 private:
     void createActions();
     void createMenus();
-    QGroupBox* controlBox();
-    QGroupBox* inspectionBox();
+    QWidget* controlBox();
     void chooseTheme(const QString& id); ///< user choice: applied and remembered
     void chooseDark(bool dark); ///< user choice: applied and remembered
     void toggleMaximized(int index);
     void tintIcons(); ///< button icons follow the text colour of the interface
 
-    // inspection panel
-    void updateTransport(); ///< buttons for the state of the current camera
-    void updateDuration(); ///< time bar range
-    void updatePosition(); ///< time bar and readouts for the picture shown
-    void beginScrub();
-    void scrub(int ms);
-    void endScrub();
-
     QList<CameraPipeline*> m_cameras;
     CameraGrid* m_grid = nullptr;
     int m_current = -1;
-    QList<QMetaObject::Connection> m_currentConnections;
     QString m_theme;
     bool m_dark = true;
 
@@ -83,18 +69,7 @@ private:
     QActionGroup* m_themeActions = nullptr;
     QAction* m_darkAction = nullptr;
 
-    // inspection panel
-    QGroupBox* m_inspection = nullptr;
-    QPushButton* m_previousButton = nullptr;
-    QPushButton* m_playButton = nullptr;
-    QPushButton* m_stopButton = nullptr;
-    QPushButton* m_nextButton = nullptr;
-    QSlider* m_timeBar = nullptr;
-    QLCDNumber* m_timeReadout = nullptr;
-    QLCDNumber* m_frameReadout = nullptr;
-    QLabel* m_durationLabel = nullptr;
-
-    // actions on the current camera
+    // actions on the camera under inspection
     QAction* m_playAction = nullptr;
     QAction* m_stopAction = nullptr;
     QAction* m_previousAction = nullptr;
@@ -104,9 +79,4 @@ private:
     QAction* m_playAllAction = nullptr;
     QAction* m_pauseAllAction = nullptr;
     QAction* m_stopAllAction = nullptr;
-
-    // scrubbing: seeks are coalesced while the time bar is dragged
-    QTimer m_seekTimer;
-    int m_seekTarget = 0; ///< ms
-    bool m_resumeAfterScrub = false;
 };

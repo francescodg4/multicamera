@@ -54,6 +54,7 @@ project_warnings(cameras)
 
 # ---- the multicamera inspection system
 qt_add_library(inspection STATIC
+  src/inspector/CameraControls.cpp src/inspector/CameraControls.hpp
   src/inspector/CameraGrid.cpp src/inspector/CameraGrid.hpp
   src/inspector/CameraTile.cpp src/inspector/CameraTile.hpp
   src/inspector/InspectionWindow.cpp src/inspector/InspectionWindow.hpp

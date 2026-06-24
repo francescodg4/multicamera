@@ -11,26 +11,17 @@
 #include <QApplication>
 #include <QCheckBox>
 #include <QComboBox>
-#include <QGridLayout>
 #include <QGroupBox>
-#include <QLCDNumber>
+#include <QHBoxLayout>
 #include <QLabel>
 #include <QMenu>
 #include <QMenuBar>
 #include <QMessageBox>
 #include <QPainter>
 #include <QPushButton>
-#include <QSlider>
 #include <QStatusBar>
 
 namespace {
-
-constexpr qint64 Millisecond = 1'000'000; ///< ns
-
-int toMs(qint64 time)
-{
-    return int(std::clamp<qint64>(time / Millisecond, 0, std::numeric_limits<int>::max()));
-}
 
 QPushButton* transportButton(const QString& text, const QString& tip)
 {
@@ -56,7 +47,7 @@ InspectionWindow::InspectionWindow(const QList<CameraSource>& sources, QWidget* 
     createActions();
     createMenus();
 
-    // ---- control room, board, inspection panel
+    // ---- control room over the board (each camera carries its own controls)
     auto* central = new QWidget;
     auto* layout = new QVBoxLayout(central);
     layout->setContentsMargins(16, 12, 16, 12);
@@ -64,21 +55,12 @@ InspectionWindow::InspectionWindow(const QList<CameraSource>& sources, QWidget* 
     m_grid = new CameraGrid(m_cameras);
     layout->addWidget(controlBox());
     layout->addWidget(m_grid, 1);
-    layout->addWidget(inspectionBox());
     setCentralWidget(central);
 
     connect(m_grid, &CameraGrid::cameraClicked, this, &InspectionWindow::select);
     connect(m_grid, &CameraGrid::cameraDoubleClicked, this, [this](int index) {
         select(index);
         toggleMaximized(index);
-    });
-
-    m_seekTimer.setSingleShot(true);
-    m_seekTimer.setInterval(40);
-    connect(&m_seekTimer, &QTimer::timeout, this, [this] {
-        if (CameraPipeline* camera = current()) {
-            camera->seek(m_seekTarget * Millisecond);
-        }
     });
 
     statusBar()->setSizeGripEnabled(false);
@@ -228,15 +210,16 @@ void InspectionWindow::createMenus()
     connect(help->addAction(tr("&About")), &QAction::triggered, this, [this] {
         QMessageBox::about(this, tr("Multicamera inspection"),
             tr("<p>An array of cameras on a GStreamer backbone: every camera is a pipeline decoding "
-               "into an appsink.</p><p>Click a camera to inspect it: play it, move along its time bar, "
-               "and step through it picture by picture with <b>E</b> (and <b>Q</b> back).</p><p>%1</p>")
+               "into an appsink.</p><p>Click a camera to inspect it: its controls show under its picture. "
+               "Play it, move along its time bar, and step through it picture by picture with <b>E</b> "
+               "(and <b>Q</b> back).</p><p>%1</p>")
                 .arg(CameraPipeline::version()));
     });
 }
 
 // ---- control room -------------------------------------------------------------------------------
 
-QGroupBox* InspectionWindow::controlBox()
+QWidget* InspectionWindow::controlBox()
 {
     auto* box = new QGroupBox(tr("Control room"));
 
@@ -324,181 +307,23 @@ void InspectionWindow::toggleMaximized(int index)
     m_maximizeAction->setChecked(m_grid->maximized() >= 0);
 }
 
-// ---- inspection panel ---------------------------------------------------------------------------
-
-QGroupBox* InspectionWindow::inspectionBox()
-{
-    m_inspection = new QGroupBox;
-
-    m_previousButton = transportButton(QString(), tr("Previous frame (Q)"));
-    connect(m_previousButton, &QPushButton::clicked, m_previousAction, &QAction::trigger);
-    m_playButton = transportButton(tr("Play"), tr("Play / pause (Space)"));
-    m_playButton->setMinimumWidth(96);
-    connect(m_playButton, &QPushButton::clicked, m_playAction, &QAction::trigger);
-    m_stopButton = transportButton(QString(), tr("Stop (S)"));
-    connect(m_stopButton, &QPushButton::clicked, m_stopAction, &QAction::trigger);
-    m_nextButton = transportButton(QString(), tr("Next frame (E)"));
-    connect(m_nextButton, &QPushButton::clicked, m_nextAction, &QAction::trigger);
-
-    m_timeBar = new QSlider(Qt::Horizontal);
-    m_timeBar->setRange(0, 0);
-    m_timeBar->setPageStep(5000);
-    m_timeBar->setToolTip(tr("Time bar: drag or click to move along the recording"));
-    m_timeBar->setFocusPolicy(Qt::ClickFocus);
-    connect(m_timeBar, &QSlider::sliderPressed, this, &InspectionWindow::beginScrub);
-    connect(m_timeBar, &QSlider::valueChanged, this, &InspectionWindow::scrub);
-    connect(m_timeBar, &QSlider::sliderReleased, this, &InspectionWindow::endScrub);
-
-    m_timeReadout = new QLCDNumber(9);
-    m_timeReadout->setFrameShape(QFrame::StyledPanel);
-    m_timeReadout->setMinimumSize(150, 40);
-    m_timeReadout->setToolTip(tr("Time of the picture shown"));
-    m_frameReadout = new QLCDNumber(6);
-    m_frameReadout->setFrameShape(QFrame::StyledPanel);
-    m_frameReadout->setMinimumSize(110, 40);
-    m_frameReadout->setToolTip(tr("Number of the picture shown"));
-    m_durationLabel = new QLabel;
-    m_durationLabel->setMinimumWidth(120);
-
-    auto* row = new QHBoxLayout(m_inspection);
-    row->addWidget(m_previousButton);
-    row->addWidget(m_playButton);
-    row->addWidget(m_stopButton);
-    row->addWidget(m_nextButton);
-    row->addSpacing(8);
-    row->addWidget(m_timeBar, 1);
-    row->addSpacing(8);
-    row->addWidget(m_timeReadout);
-    row->addWidget(m_durationLabel);
-    row->addWidget(new QLabel(tr("Frame")));
-    row->addWidget(m_frameReadout);
-    return m_inspection;
-}
+// ---- inspection ---------------------------------------------------------------------------------
 
 void InspectionWindow::select(int index)
 {
-    for (const QMetaObject::Connection& connection : std::as_const(m_currentConnections)) {
-        disconnect(connection);
-    }
-    m_currentConnections.clear();
-    m_seekTimer.stop();
-
     m_current = index >= 0 && index < m_cameras.size() ? index : -1;
-    m_grid->setSelected(m_current);
+    m_grid->setSelected(m_current); // the selected card shows its controls, the others hide theirs
     if (m_grid->maximized() >= 0 && m_current >= 0 && m_grid->maximized() != m_current) {
         m_grid->setMaximized(m_current); // the maximised view follows the selection
     }
 
     CameraPipeline* camera = current();
-    for (QWidget* widget : { static_cast<QWidget*>(m_previousButton), static_cast<QWidget*>(m_playButton), static_cast<QWidget*>(m_stopButton),
-             static_cast<QWidget*>(m_nextButton), static_cast<QWidget*>(m_timeBar) }) {
-        widget->setEnabled(camera);
-    }
     for (QAction* action : { m_playAction, m_stopAction, m_previousAction, m_nextAction, m_startAction, m_maximizeAction }) {
         action->setEnabled(camera);
     }
-
     if (camera) {
-        m_currentConnections << connect(camera, &CameraPipeline::frameReady, this, &InspectionWindow::updatePosition)
-                             << connect(camera, &CameraPipeline::stateChanged, this, &InspectionWindow::updateTransport)
-                             << connect(camera, &CameraPipeline::durationChanged, this, &InspectionWindow::updateDuration);
-        m_inspection->setTitle(tr("Inspection — %1 · %2").arg(camera->source().name, camera->source().label));
         statusBar()->showMessage(tr("Inspecting %1: Space plays or pauses, E steps one frame forward, Q one back").arg(camera->source().name), 8000);
-    } else {
-        m_inspection->setTitle(tr("Inspection — click a camera"));
     }
-    updateDuration();
-    updateTransport();
-    updatePosition();
-}
-
-void InspectionWindow::updateTransport()
-{
-    const CameraPipeline* camera = current();
-    const bool playing = camera && camera->state() == CameraPipeline::State::Playing;
-    m_playButton->setText(playing ? tr("Pause") : tr("Play"));
-    const QColor ink = QApplication::palette().color(QPalette::ButtonText);
-    m_playButton->setIcon(Icons::icon(playing ? Icon::Pause : Icon::Play, ink));
-}
-
-void InspectionWindow::updateDuration()
-{
-    const CameraPipeline* camera = current();
-    const QSignalBlocker block(m_timeBar);
-    if (!camera) {
-        m_timeBar->setRange(0, 0);
-        m_durationLabel->setText(QStringLiteral("/ --:--.---"));
-        return;
-    }
-    m_timeBar->setRange(0, toMs(camera->duration()));
-    const qint64 frame = camera->frameDuration();
-    m_timeBar->setSingleStep(frame > 0 ? std::max(1, toMs(frame)) : 40);
-    QString text = QStringLiteral("/ %1").arg(CameraPipeline::timecode(camera->duration()));
-    if (frame > 0) {
-        text += QStringLiteral("\n%1 fps").arg(double(1'000'000'000) / double(frame), 0, 'f', 2);
-    }
-    m_durationLabel->setText(text);
-}
-
-void InspectionWindow::updatePosition()
-{
-    const CameraPipeline* camera = current();
-    if (!camera) {
-        m_timeReadout->display(QStringLiteral("--:--.---"));
-        m_frameReadout->display(QStringLiteral("------"));
-        return;
-    }
-    const qint64 position = camera->position();
-    // while the user moves the time bar it shows where they are going, not the last picture
-    if (!m_timeBar->isSliderDown() && !m_seekTimer.isActive()) {
-        const QSignalBlocker block(m_timeBar);
-        if (m_timeBar->maximum() == 0 && camera->duration() > 0) {
-            updateDuration();
-        }
-        m_timeBar->setValue(toMs(position));
-    }
-    if (camera->frameDuration() > 0 && m_timeBar->singleStep() != std::max(1, toMs(camera->frameDuration()))) {
-        updateDuration(); // the frame rate is known from the first picture
-    }
-    const QString time = CameraPipeline::timecode(position);
-    m_timeReadout->setDigitCount(std::max(9, int(time.size())));
-    m_timeReadout->display(time);
-    m_frameReadout->display(QString::number(camera->frameNumber()));
-}
-
-void InspectionWindow::beginScrub()
-{
-    CameraPipeline* camera = current();
-    if (!camera) {
-        return;
-    }
-    m_resumeAfterScrub = camera->state() == CameraPipeline::State::Playing;
-    camera->pause();
-}
-
-void InspectionWindow::scrub(int ms)
-{
-    if (!current()) {
-        return;
-    }
-    m_seekTarget = ms;
-    if (!m_seekTimer.isActive()) {
-        m_seekTimer.start();
-    }
-}
-
-void InspectionWindow::endScrub()
-{
-    CameraPipeline* camera = current();
-    if (!camera) {
-        return;
-    }
-    m_seekTimer.stop();
-    camera->seek(qint64(m_timeBar->value()) * Millisecond);
-    if (m_resumeAfterScrub) {
-        camera->play();
-    }
-    m_resumeAfterScrub = false;
 }
 
 // ---- interface ----------------------------------------------------------------------------------
@@ -548,10 +373,6 @@ void InspectionWindow::tintIcons()
     m_playAllButton->setIcon(Icons::icon(Icon::Play, ink));
     m_pauseAllButton->setIcon(Icons::icon(Icon::Pause, ink));
     m_stopAllButton->setIcon(Icons::icon(Icon::Stop, ink));
-    m_previousButton->setIcon(Icons::icon(Icon::FramePrevious, ink));
-    m_stopButton->setIcon(Icons::icon(Icon::Stop, ink));
-    m_nextButton->setIcon(Icons::icon(Icon::FrameNext, ink));
-    updateTransport();
 }
 
 void InspectionWindow::paintEvent(QPaintEvent*)
