@@ -15,7 +15,7 @@ checked by eye.
   1–4 columns), loop recordings at their end, and pick the interface **Design** (and **Dark** mode for
   the designs that have one).
 - **Board**: each camera shows a status lamp (play / pause / stop), the time and number of the picture
-  on screen. **Click** a camera to inspect it; **double click** maximises it.
+  on screen. **Click** a camera to inspect it; **double click** maximises it: in single-camera mode the control room steps aside, and the camera keeps its own controls.
 - **Camera controls** (on the camera clicked, over the bottom of its card): previous frame, play / pause,
   stop, next frame, the time bar (drag or click to move) and a readout of the time and picture number /
   pictures in all (its tooltip adds the length and frame rate). The picture shrinks to make room for
@@ -97,6 +97,7 @@ ctest --test-dir build --output-on-failure
 | `--columns <n>` | columns of the board (default: automatic) |
 | `--select <n>` | camera to inspect at start (1 is the first) |
 | `--paused` | do not start the cameras |
+| `--maximize` | show the camera of `--select` alone (single-camera mode) |
 | `--screenshot <dir>` | save `inspector-<theme>.png` and quit; `--theme all` saves every design (both modes of Revolut unless `--mode` is given); works with `-platform offscreen` |
 
 ## Code

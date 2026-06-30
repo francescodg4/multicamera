@@ -10,7 +10,8 @@
 
 namespace {
 
-constexpr int Spill = 6; ///< room round the card for the selection mark
+constexpr int Pad = 6; ///< between the card's edge and its screen and controls: the pictures get the room
+constexpr int RingInset = 3; ///< the selection mark is drawn inside the card, which touches its neighbours
 constexpr int LampSize = 10;
 
 QFont overlayFont(int pixelSize)
@@ -102,16 +103,16 @@ QSize CameraTile::minimumSizeHint() const
 
 QRect CameraTile::cardRect() const
 {
-    return rect().adjusted(Spill, Spill, -Spill, -Spill);
+    return rect(); // cards touch: no gap between the cameras
 }
 
 QRect CameraTile::screenRect() const
 {
     const auto* style = qobject_cast<const WidgetStyle*>(this->style());
     const WidgetStyle::Metrics m = style ? style->metrics() : WidgetStyle::Metrics {};
-    QRect screen = cardRect().adjusted(m.margin, m.title + m.spacing / 2, -m.margin, -m.margin);
+    QRect screen = cardRect().adjusted(Pad, m.title, -Pad, -Pad);
     if (m_selected) {
-        screen.setBottom(controlsRect().top() - m.spacing / 2 - 1); // the picture gives way to the controls
+        screen.setBottom(controlsRect().top() - Pad - 1); // the picture gives way to the controls
     }
     return screen;
 }
@@ -122,7 +123,7 @@ QRect CameraTile::controlsRect() const
     const WidgetStyle::Metrics m = style ? style->metrics() : WidgetStyle::Metrics {};
     const QRect card = cardRect();
     const int height = std::max(m.control, m_controls->sizeHint().height());
-    return { card.left() + m.margin, card.bottom() - m.margin - height + 1, card.width() - 2 * m.margin, height };
+    return { card.left() + Pad, card.bottom() - Pad - height + 1, card.width() - 2 * Pad, height };
 }
 
 void CameraTile::layoutControls()
@@ -152,7 +153,7 @@ void CameraTile::paintChrome()
     style->card(p, this, card, title, caption);
     style->display(p, screenRect());
     if (m_selected) {
-        style->focusFrame(p, card);
+        style->focusFrame(p, card.adjusted(RingInset, RingInset, -RingInset, -RingInset));
     }
 }
 

@@ -43,7 +43,7 @@ protected:
     void mouseDoubleClickEvent(QMouseEvent* event) override;
 
 private:
-    QRect cardRect() const; ///< the card, inset so the selection mark can spill round it
+    QRect cardRect() const; ///< the card: the whole tile, so neighbouring cards touch
     QRect controlsRect() const; ///< the bottom band of the card, for the controls
     void layoutControls();
     void paintChrome(); ///< card, display and selection mark, cached in m_chrome

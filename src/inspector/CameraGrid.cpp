@@ -40,6 +40,7 @@ void CameraGrid::setMaximized(int index)
     if (m_maximized != index) {
         m_maximized = index;
         relayout();
+        emit maximizedChanged(index);
     }
 }
 
@@ -48,7 +49,7 @@ void CameraGrid::relayout()
     delete layout(); // the tiles stay: they are children of the board, not of the layout
     auto* grid = new QGridLayout(this);
     grid->setContentsMargins(0, 0, 0, 0);
-    grid->setSpacing(4); // the tiles keep room round their cards for the selection mark
+    grid->setSpacing(0); // the cards touch, for the largest pictures
 
     if (m_maximized >= 0) {
         for (int i = 0; i < m_tiles.size(); ++i) {

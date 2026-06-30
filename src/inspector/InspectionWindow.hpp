@@ -58,7 +58,8 @@ private:
     QString m_theme;
     bool m_dark = true;
 
-    // control room
+    // control room (hidden while a single camera is maximised)
+    QWidget* m_controlRoom = nullptr;
     QComboBox* m_themeSelector = nullptr;
     QCheckBox* m_darkBox = nullptr;
     QComboBox* m_layout = nullptr;

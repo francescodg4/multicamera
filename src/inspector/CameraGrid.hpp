@@ -28,6 +28,7 @@ public:
 signals:
     void cameraClicked(int index);
     void cameraDoubleClicked(int index);
+    void maximizedChanged(int index); ///< -1: back to every camera
 
 private:
     void relayout();

@@ -53,9 +53,17 @@ InspectionWindow::InspectionWindow(const QList<CameraSource>& sources, QWidget* 
     layout->setContentsMargins(16, 12, 16, 12);
     layout->setSpacing(10);
     m_grid = new CameraGrid(m_cameras);
-    layout->addWidget(controlBox());
+    m_controlRoom = controlBox();
+    m_controlRoom->setObjectName(QStringLiteral("controlRoom"));
+    layout->addWidget(m_controlRoom);
     layout->addWidget(m_grid, 1);
     setCentralWidget(central);
+
+    // a single camera gets the whole window: the controls for every camera step aside
+    connect(m_grid, &CameraGrid::maximizedChanged, this, [this](int index) {
+        m_controlRoom->setVisible(index < 0);
+        m_maximizeAction->setChecked(index >= 0);
+    });
 
     connect(m_grid, &CameraGrid::cameraClicked, this, &InspectionWindow::select);
     connect(m_grid, &CameraGrid::cameraDoubleClicked, this, [this](int index) {
@@ -304,7 +312,6 @@ void InspectionWindow::toggleMaximized(int index)
         return;
     }
     m_grid->setMaximized(m_grid->maximized() == index ? -1 : index);
-    m_maximizeAction->setChecked(m_grid->maximized() >= 0);
 }
 
 // ---- inspection ---------------------------------------------------------------------------------

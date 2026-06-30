@@ -58,9 +58,10 @@ int main(int argc, char* argv[])
     const QCommandLineOption columnsOption("columns", "Columns of the camera board (default: automatic).", "n", "0");
     const QCommandLineOption selectOption("select", "Camera to inspect at start (1 is the first).", "n");
     const QCommandLineOption pausedOption("paused", "Do not start the cameras.");
+    const QCommandLineOption maximizeOption("maximize", "Show the camera of --select alone.");
     const QCommandLineOption modeOption("mode", "light or dark, for the interfaces that have both (default: the last one selected).", "mode");
     const QCommandLineOption screenshotOption("screenshot", "Save the window as inspector-<theme>.png in <dir> and quit; --theme all saves every interface (both modes unless --mode is given).", "dir");
-    parser.addOptions({ themeOption, modeOption, videosOption, testOption, columnsOption, selectOption, pausedOption, screenshotOption });
+    parser.addOptions({ themeOption, modeOption, videosOption, testOption, columnsOption, selectOption, pausedOption, maximizeOption, screenshotOption });
     parser.process(app);
 
     const QString requested = parser.value(themeOption);
@@ -97,6 +98,9 @@ int main(int argc, char* argv[])
     }
     if (parser.isSet(selectOption)) {
         window.select(parser.value(selectOption).toInt() - 1);
+        if (parser.isSet(maximizeOption)) {
+            window.grid()->setMaximized(parser.value(selectOption).toInt() - 1);
+        }
     }
 
     if (parser.isSet(screenshotOption)) {

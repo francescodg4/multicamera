@@ -167,6 +167,24 @@ private slots:
         QVERIFY(m_window->grid()->tiles()[0]->isVisible());
     }
 
+    void singleCameraHidesTheControlRoom()
+    {
+        auto* controlRoom = m_window->findChild<QWidget*>(QStringLiteral("controlRoom"));
+        QVERIFY(controlRoom && controlRoom->isVisible());
+        CameraTile* tile = m_window->grid()->tiles()[1];
+        QTest::mouseDClick(tile, Qt::LeftButton, {}, tile->rect().center());
+        QVERIFY(!controlRoom->isVisible()); // one camera: no controls for all of them
+        QVERIFY(tile->controls()->isVisible()); // its own controls stay
+        m_window->select(2); // the maximised view follows the selection
+        QVERIFY(!controlRoom->isVisible());
+        QTest::keyClick(m_window.get(), Qt::Key_F);
+        QVERIFY(controlRoom->isVisible());
+        QTest::keyClick(m_window.get(), Qt::Key_F);
+        QVERIFY(!controlRoom->isVisible());
+        QTest::keyClick(m_window.get(), Qt::Key_Escape);
+        QVERIFY(controlRoom->isVisible());
+    }
+
     void playAllStopAll()
     {
         m_window->playAll();
