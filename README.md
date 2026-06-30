@@ -1,8 +1,9 @@
 # Multicamera inspection: C++ / Qt 6 on GStreamer
 
 A multicamera inspection system: an array of cameras, each one a GStreamer pipeline, on a board
-drawn in the interface design of your choice. Click a camera to inspect it: play or pause it, move
-along its time bar, and step through it picture by picture with **E**.
+drawn in the interface design of your choice. Click a camera to inspect it: its player controls
+appear under its picture. Play or pause it, move along its time bar, and step through it picture by
+picture with **E**.
 
 The cameras are the recordings in [videos/](videos/) plus synthetic GStreamer test cameras
 (`videotestsrc`), which burn their buffer time into the picture so every seek and step can be
@@ -11,11 +12,14 @@ checked by eye.
 ## Using it
 
 - **Control room**: play, pause or stop every camera at once, choose the board layout (automatic or
-  1–4 columns), loop recordings at their end, and pick the interface **Design**.
+  1–4 columns), loop recordings at their end, and pick the interface **Design** (and **Dark** mode for
+  the designs that have one).
 - **Board**: each camera shows a status lamp (play / pause / stop), the time and number of the picture
   on screen. **Click** a camera to inspect it; **double click** maximises it.
-- **Inspection panel** (the camera clicked): previous frame, play/pause, stop, next frame, the time bar
-  (drag or click to move), the time and frame readouts, the length and frame rate.
+- **Camera controls** (on the camera clicked, over the bottom of its card): previous frame, play / pause,
+  stop, next frame, the time bar (drag or click to move) and a readout of the time and picture number /
+  pictures in all (its tooltip adds the length and frame rate). The picture shrinks to make room for
+  them, so they never cover it; they disappear when another camera, or none, is selected.
 
 | Key | |
 |---|---|
@@ -29,16 +33,19 @@ checked by eye.
 | **F** | maximise the camera |
 | **Ctrl+P** / **Ctrl+Shift+P** / **Ctrl+.** | play / pause / stop all |
 | **Ctrl+1** … **Ctrl+3** | interface design |
+| **Ctrl+D** | dark / light mode (Revolut) |
 
 ## Interface designs
 
 Each design draws every widget, and the camera cards, through its own `QStyle`, following
-its design rules. The choice is remembered.
+its design rules. The choice, and the mode, are remembered.
 
 - **Liquid Glass** (`glass`): frosted cards over an ambient canvas, clay buttons, a radiant glow round
   the camera under inspection.
-- **Emerald** (`emerald`): the GBA storage-box system: pixel-grid cards under box banners, CRT
-  screens, and the glove cursor pointing at the selected box.
+- **Revolut** (`revolut`): Revolut.com in the Idetica identity, in a **light and a dark mode**: flat
+  tinted cards under violet eyebrows, pill buttons (violet for the primary action), white app widgets,
+  Inter type, and the amber focus ring round the camera under inspection (and round whatever has
+  keyboard focus).
 - **Winamp** (`winamp`): brushed metal, cobalt LCD glass, LED status lamps, the selected module lit
   in LCD blue.
 
@@ -63,7 +70,7 @@ test:       videotestsrc pattern=… ! 640x360@25 ! timeoverlay ! videoconvert !
 ## Build & run
 
 The development environment is the Docker image of [.devcontainer/](.devcontainer/): Qt 6.4 and
-GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav). Open the folder in
+GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav), and the Inter font. Open the folder in
 the dev container, or build the image yourself:
 
 ```bash
@@ -83,13 +90,14 @@ ctest --test-dir build --output-on-failure
 
 | `inspector` option | |
 |---|---|
-| `--theme <id>` | design: `glass`, `emerald`, `winamp` (default: the last one selected) |
+| `--theme <id>` | design: `glass`, `revolut`, `winamp` (default: the last one selected) |
+| `--mode <light|dark>` | mode of the designs that have two (default: the last one selected) |
 | `--videos <dir>` | folder of the recordings (default: `./videos`) |
 | `--test-cameras <n>` | test cameras after the recordings (default 4) |
 | `--columns <n>` | columns of the board (default: automatic) |
 | `--select <n>` | camera to inspect at start (1 is the first) |
 | `--paused` | do not start the cameras |
-| `--screenshot <dir>` | save `inspector-<theme>.png` and quit; `--theme all` saves every design; works with `-platform offscreen` |
+| `--screenshot <dir>` | save `inspector-<theme>.png` and quit; `--theme all` saves every design (both modes of Revolut unless `--mode` is given); works with `-platform offscreen` |
 
 ## Code
 
@@ -99,14 +107,15 @@ src/
     CameraSource        what a camera shows: a recording or a test pattern; discovery of videos/
     CameraPipeline      the GStreamer pipeline of one camera and its player controls
     CameraTile          one camera on the board, drawn by the design
+    CameraControls      the player controls of the camera under inspection, on its card
     CameraGrid          the board: layout, selection, maximised camera
-    InspectionWindow    control room, board, inspection panel, menus and shortcuts
+    InspectionWindow    control room, board, menus and shortcuts
     main.cpp            command line, screenshot mode
   WidgetStyle           base QStyle of the designs and their drawing vocabulary
-  ThemeRegistry         the list of designs, applying one, the remembered choice
+  ThemeRegistry         the list of designs and their modes, applying one, the remembered choice
   Icons                 vector icons (transport glyphs included)
   themes/<id>/          one folder per design (Entry, Style, Theme tokens, drawing helpers)
 tests/
   tst_CameraPipeline    states, accurate seeks, frame steps on test cameras and a recording
-  tst_InspectionWindow  the workflow: click a camera, E / Q, time bar, maximise, designs
+  tst_InspectionWindow  the workflow: click a camera, its controls, E / Q, time bar, maximise, designs and modes
 ```
