@@ -54,7 +54,7 @@ its design rules. The choice, and the mode, are remembered.
 - **Flat** (`flat`): a slate operations console: lighter navy panels with a hairline and a
   sentence-case title on a slate canvas, a gutter of canvas round each camera, sunken fields, docked
   tabs over a steel-blue indicator, and one signal colour, azure, for the camera under inspection
-  (a square 2px box), live cameras and the primary action. No greens.
+  (a square 2px box) and the primary action; the status lamps keep green / amber / red.
 - **Winamp** (`winamp`): brushed metal, cobalt LCD glass, LED status lamps, the selected module lit
   in LCD blue.
 

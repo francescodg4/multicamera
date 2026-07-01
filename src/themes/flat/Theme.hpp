@@ -6,7 +6,7 @@
 namespace flat {
 
 /// Tokens of the flat slate operations console: lighter navy hairline panels on a slate canvas,
-/// muted labels and light values, one signal colour (azure) in a cool family with no greens.
+/// muted labels and light values, one signal colour (azure) in a cool family.
 namespace Theme {
 
 /// The colours of the design.
@@ -36,8 +36,8 @@ struct Palette {
     QColor textOverlay; ///< --flat-text-overlay: timestamps on pictures
     QColor textChip; ///< overlay caption chips, tooltips
 
-    // the signal: tracked objects, live status and the primary action, never decoration
-    QColor signal; ///< --flat-signal: bounding box, badge border, check marks, live
+    // the signal: tracked objects and the primary action, never decoration
+    QColor signal; ///< --flat-signal: bounding box, badge border, check marks
     QColor signalFill; ///< --flat-signal-fill: badge, primary action
     QColor signalHover;
     QColor signalPressed;

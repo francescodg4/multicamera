@@ -373,10 +373,7 @@ void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) 
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
     p.setPen(Qt::NoPen);
-    // no greens: the live (playing) state takes the signal colour
-    const int hue = color.hsvHue();
-    const QColor status = hue >= 70 && hue <= 170 ? c.signal : color;
-    p.setBrush(lit ? status : alpha(status, 70));
+    p.setBrush(lit ? color : alpha(color, 70));
     p.drawEllipse(r);
     p.restore();
 }

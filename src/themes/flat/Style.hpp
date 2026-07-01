@@ -8,8 +8,8 @@ namespace flat {
 /// The standard widgets as a flat slate operations console: "quiet chrome, loud data". Navy
 /// panels with a hairline and a sentence-case title on a slate canvas, cameras separated by
 /// gutters of canvas, docked tabs with a steel-blue indicator, sunken fields, and the one signal
-/// colour (azure) for the camera under inspection, live status and the primary action. No greens,
-/// no gradients, glows, shadows or bevels.
+/// colour (azure) for the camera under inspection and the primary action; the status lamps keep
+/// green, amber and red. No gradients, glows, shadows or bevels.
 class Style : public WidgetStyle {
 public:
     Style();
