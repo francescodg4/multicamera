@@ -1,4 +1,4 @@
-# Qt 6 toolchain plus the GStreamer media backbone of the inspection system.
+# Qt 6 toolchain plus the GStreamer media backbone of the inspection system, and Catch2 for the tests.
 FROM qt6-opencv:v1.0
 
 RUN apt-get update \
@@ -12,4 +12,5 @@ RUN apt-get update \
         gstreamer1.0-tools \
         fonts-dejavu-core \
         fonts-inter \
+        catch2 \
     && rm -rf /var/lib/apt/lists/*

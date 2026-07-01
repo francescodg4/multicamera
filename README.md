@@ -79,7 +79,7 @@ test:       videotestsrc pattern=… ! 640x360@25 ! timeoverlay ! videoconvert !
 ## Build & run
 
 The development environment is the Docker image of [.devcontainer/](.devcontainer/): Qt 6.4 and
-GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav), and the Inter font. Open the folder in
+GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav), the Inter font, and Catch2 for the tests. Open the folder in
 the dev container, or build the image yourself:
 
 ```bash
@@ -126,6 +126,7 @@ src/
   Icons                 the transport glyphs, drawn as vectors
   themes/<id>/          one folder per design (Entry, Style, Theme tokens, drawing helpers)
 tests/
-  tst_CameraPipeline    states, accurate seeks, frame steps on test cameras and a recording
-  tst_InspectionWindow  the workflow: click a camera, its controls, E / Q, time bar, maximise, designs and modes
+  test_main               Catch2 inside a QApplication; test_support: waiting on the event loop, clicks, shortcuts
+  test_camera_pipeline    states, accurate seeks, frame steps on test cameras and a recording
+  test_inspection_window  the workflow: click a camera, its controls, E / Q, time bar, maximise, designs and modes
 ```
