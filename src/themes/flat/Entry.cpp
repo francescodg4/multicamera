@@ -10,7 +10,7 @@ ThemeEntry themeEntry()
     return {
         QStringLiteral("flat"),
         QCoreApplication::translate("Themes", "Flat"),
-        QCoreApplication::translate("Themes", "Flat dark operations console: navy hairline panels on a black canvas, muted labels and light values, detection green for the camera under inspection."),
+        QCoreApplication::translate("Themes", "Flat slate operations console: navy hairline panels on a slate canvas, muted labels and light values, azure for the camera under inspection."),
         [](bool) -> WidgetStyle* { return new Style; },
     };
 }

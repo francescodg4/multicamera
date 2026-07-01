@@ -33,19 +33,19 @@ namespace {
     }
 
     /// Panel with its section title at the top-left and a divider under it.
-    void panel(QPainter& p, const QRect& rect, const QRect& titleRect, const QString& title)
+    void panel(QPainter& p, const Theme::Palette& c, const QRect& rect, const QRect& titleRect, const QString& title)
     {
-        p.fillRect(rect, Theme::panel);
-        hairline(p, rect, Theme::panelBorder);
+        p.fillRect(rect, c.panel);
+        hairline(p, rect, c.panelBorder);
         if (title.isEmpty()) {
             return;
         }
         p.save();
         p.setFont(Theme::font(14));
-        p.setPen(Theme::textTitle);
+        p.setPen(c.textTitle);
         p.drawText(titleRect.adjusted(12, 0, -12, 0), Qt::AlignLeft | Qt::AlignVCenter, title);
         p.restore();
-        p.fillRect(QRect(rect.left() + 1, titleRect.bottom(), rect.width() - 2, 1), Theme::divider);
+        p.fillRect(QRect(rect.left() + 1, titleRect.bottom(), rect.width() - 2, 1), c.divider);
     }
 
 } // namespace
@@ -67,6 +67,7 @@ Style::Style()
         m.spacing = Theme::gutter;
         return m;
     }())
+    , c(Theme::palette())
 {
 }
 
@@ -78,27 +79,27 @@ QFont Style::font() const
 QPalette Style::standardPalette() const
 {
     QPalette pal;
-    pal.setColor(QPalette::Window, Theme::canvas);
-    pal.setColor(QPalette::WindowText, Theme::text);
-    pal.setColor(QPalette::Base, Theme::sunken);
-    pal.setColor(QPalette::AlternateBase, Theme::panel);
-    pal.setColor(QPalette::Text, Theme::text);
-    pal.setColor(QPalette::PlaceholderText, Theme::textMuted);
-    pal.setColor(QPalette::Button, Theme::button);
-    pal.setColor(QPalette::ButtonText, Theme::text);
-    pal.setColor(QPalette::BrightText, Theme::detect);
-    pal.setColor(QPalette::Highlight, Theme::selected);
-    pal.setColor(QPalette::HighlightedText, Theme::text); // a selected row keeps its text colour
-    pal.setColor(QPalette::ToolTipBase, Theme::canvas);
-    pal.setColor(QPalette::ToolTipText, Theme::textChip);
-    pal.setColor(QPalette::Link, Theme::textSelected);
-    pal.setColor(QPalette::Light, Theme::panel);
-    pal.setColor(QPalette::Midlight, Theme::divider);
-    pal.setColor(QPalette::Mid, Theme::panelBorder);
-    pal.setColor(QPalette::Dark, Theme::sunken);
-    pal.setColor(QPalette::Shadow, Theme::canvas);
+    pal.setColor(QPalette::Window, c.canvas);
+    pal.setColor(QPalette::WindowText, c.text);
+    pal.setColor(QPalette::Base, c.sunken);
+    pal.setColor(QPalette::AlternateBase, c.panel);
+    pal.setColor(QPalette::Text, c.text);
+    pal.setColor(QPalette::PlaceholderText, c.textMuted);
+    pal.setColor(QPalette::Button, c.button);
+    pal.setColor(QPalette::ButtonText, c.text);
+    pal.setColor(QPalette::BrightText, c.signal);
+    pal.setColor(QPalette::Highlight, c.selected);
+    pal.setColor(QPalette::HighlightedText, c.text); // a selected row keeps its text colour
+    pal.setColor(QPalette::ToolTipBase, c.canvas);
+    pal.setColor(QPalette::ToolTipText, c.textChip);
+    pal.setColor(QPalette::Link, c.textSelected);
+    pal.setColor(QPalette::Light, c.panel);
+    pal.setColor(QPalette::Midlight, c.divider);
+    pal.setColor(QPalette::Mid, c.panelBorder);
+    pal.setColor(QPalette::Dark, c.sunken);
+    pal.setColor(QPalette::Shadow, c.canvas);
     for (const QPalette::ColorRole role : { QPalette::WindowText, QPalette::Text, QPalette::ButtonText }) {
-        pal.setColor(QPalette::Disabled, role, Theme::textDisabled);
+        pal.setColor(QPalette::Disabled, role, c.textDisabled);
     }
     return pal;
 }
@@ -107,45 +108,45 @@ QPalette Style::standardPalette() const
 
 void Style::window(QPainter& p, const QWidget*, const QRect& rect) const
 {
-    p.fillRect(rect, Theme::canvas); // black edge to edge: the brightest pixels are data
+    p.fillRect(rect, c.canvas); // black edge to edge: the brightest pixels are data
 }
 
 void Style::card(QPainter& p, const QWidget*, const QRect& rect, const QRect& titleRect, const QString& title) const
 {
-    panel(p, rect, titleRect, title);
+    panel(p, c, rect, titleRect, title);
 }
 
 void Style::tile(QPainter& p, const QWidget*, const QRect& rect, const QRect& titleRect, const QString& title, int) const
 {
     // the cameras touch: each keeps half a gutter of canvas round its panel
     constexpr int half = Theme::gutter / 2;
-    p.fillRect(rect, Theme::canvas);
-    panel(p, rect.adjusted(half, half, -half, -half), titleRect.adjusted(half, half, -half, 0), title);
+    p.fillRect(rect, c.canvas);
+    panel(p, c, rect.adjusted(half, half, -half, -half), titleRect.adjusted(half, half, -half, 0), title);
 }
 
 QColor Style::tileText() const
 {
-    return Theme::text;
+    return c.text;
 }
 
 void Style::button(QPainter& p, const QRect& rect, Button kind, const Look& look) const
 {
     const bool primary = kind == Button::Default;
-    QColor fill = primary ? Theme::detectFill : Theme::button;
-    QColor edge = primary ? Theme::detectFill : Theme::panelBorder;
+    QColor fill = primary ? c.signalFill : c.button;
+    QColor edge = primary ? c.signalFill : c.panelBorder;
     if (!look.enabled) {
-        fill = primary ? Theme::detectDisabled : Theme::button;
-        edge = primary ? Theme::detectDisabled : Theme::buttonDisabledBorder;
+        fill = primary ? c.signalDisabled : c.button;
+        edge = primary ? c.signalDisabled : c.buttonDisabledBorder;
     } else if (look.pressed || look.checked) {
-        fill = primary ? Theme::detectPressed : Theme::buttonPressed;
+        fill = primary ? c.signalPressed : c.buttonPressed;
     } else if (look.hover) {
-        fill = primary ? Theme::detectHover : Theme::selected;
+        fill = primary ? c.signalHover : c.selected;
     }
     if (kind == Button::Flat && look.enabled && !look.hover && !look.pressed && !look.checked) {
         return; // a text command until it is touched
     }
     if (look.focusVisible) {
-        edge = primary ? Theme::detect : Theme::selectedLine;
+        edge = primary ? c.signal : c.selectedLine;
     }
     p.fillRect(rect, fill);
     hairline(p, rect, edge);
@@ -154,30 +155,30 @@ void Style::button(QPainter& p, const QRect& rect, Button kind, const Look& look
 QColor Style::buttonText(Button kind, const Look& look, const QPalette&) const
 {
     if (!look.enabled) {
-        return Theme::textDisabled;
+        return c.textDisabled;
     }
-    return kind == Button::Default ? Theme::detectText : Theme::text;
+    return kind == Button::Default ? c.signalText : c.text;
 }
 
 void Style::field(QPainter& p, const QRect& rect, const Look& look) const
 {
-    p.fillRect(rect, Theme::sunken);
-    const QColor edge = !look.enabled ? Theme::buttonDisabledBorder : look.focus ? Theme::selectedLine : look.hover ? Theme::fieldHover : Theme::panelBorder;
+    p.fillRect(rect, c.sunken);
+    const QColor edge = !look.enabled ? c.buttonDisabledBorder : look.focus ? c.selectedLine : look.hover ? c.fieldHover : c.panelBorder;
     hairline(p, rect, edge);
 }
 
 void Style::view(QPainter& p, const QRect& rect, const Look&) const
 {
-    p.fillRect(rect, Theme::sunken);
-    hairline(p, rect, Theme::panelBorder);
+    p.fillRect(rect, c.sunken);
+    hairline(p, rect, c.panelBorder);
 }
 
 void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Look& look) const
 {
     const QRect& r = rect;
-    p.fillRect(r, Theme::sunken);
-    hairline(p, r, !look.enabled ? Theme::buttonDisabledBorder : look.focusVisible ? Theme::selectedLine : look.hover ? Theme::fieldHover : Theme::panelBorder);
-    const QColor mark = look.enabled ? Theme::detect : Theme::textDisabled;
+    p.fillRect(r, c.sunken);
+    hairline(p, r, !look.enabled ? c.buttonDisabledBorder : look.focusVisible ? c.selectedLine : look.hover ? c.fieldHover : c.panelBorder);
+    const QColor mark = look.enabled ? c.signal : c.textDisabled;
     if (state == Qt::Checked) {
         const QRectF m = QRectF(r).adjusted(3, 3, -3, -3);
         const auto at = [&](qreal x, qreal y) { return QPointF(m.left() + x * m.width(), m.top() + y * m.height()); };
@@ -196,12 +197,12 @@ void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) con
     const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(Theme::sunken);
-    p.setPen(QPen(!look.enabled ? Theme::buttonDisabledBorder : look.focusVisible ? Theme::selectedLine : look.hover ? Theme::fieldHover : Theme::panelBorder, 1));
+    p.setBrush(c.sunken);
+    p.setPen(QPen(!look.enabled ? c.buttonDisabledBorder : look.focusVisible ? c.selectedLine : look.hover ? c.fieldHover : c.panelBorder, 1));
     p.drawEllipse(r);
     if (on) {
         p.setPen(Qt::NoPen);
-        p.setBrush(look.enabled ? Theme::detect : Theme::textDisabled);
+        p.setBrush(look.enabled ? c.signal : c.textDisabled);
         p.drawEllipse(r.center(), r.width() * 0.25, r.height() * 0.25);
     }
     p.restore();
@@ -221,7 +222,7 @@ void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look
     }
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(!look.enabled ? Theme::textDisabled : look.hover ? Theme::text : Theme::textMuted, 1.4, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
+    p.setPen(QPen(!look.enabled ? c.textDisabled : look.hover ? c.text : c.textMuted, 1.4, Qt::SolidLine, Qt::SquareCap, Qt::MiterJoin));
     p.drawPolyline(chevron);
     p.restore();
 }
@@ -230,8 +231,8 @@ void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look
 
 void Style::groove(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation, const Look& look) const
 {
-    p.fillRect(rect, Theme::divider);
-    p.fillRect(filled, look.enabled ? Theme::selectedLine : Theme::panelBorder);
+    p.fillRect(rect, c.divider);
+    p.fillRect(filled, look.enabled ? c.selectedLine : c.panelBorder);
 }
 
 void Style::handle(QPainter& p, const QRect& rect, Qt::Orientation, const Look& look) const
@@ -239,9 +240,9 @@ void Style::handle(QPainter& p, const QRect& rect, Qt::Orientation, const Look& 
     // a 10px square, no shadow
     QRect r(QPoint(), QSize(10, 10));
     r.moveCenter(rect.center());
-    p.fillRect(r, !look.enabled ? Theme::textDisabled : look.pressed || look.hover ? Theme::textTitle : Theme::text);
+    p.fillRect(r, !look.enabled ? c.textDisabled : look.pressed || look.hover ? c.textTitle : c.text);
     if (look.focusVisible) {
-        hairline(p, r.adjusted(-2, -2, 2, 2), Theme::selectedLine);
+        hairline(p, r.adjusted(-2, -2, 2, 2), c.selectedLine);
     }
 }
 
@@ -253,14 +254,14 @@ QSize Style::handleSize(Qt::Orientation) const
 void Style::scrollBar(QPainter& p, const QRect&, const QRect& handle, Qt::Orientation, const Look& look) const
 {
     // no arrows, no track: the handle alone
-    p.fillRect(handle.adjusted(1, 1, -1, -1), look.pressed || look.hover ? Theme::selectedLine : Theme::panelBorder);
+    p.fillRect(handle.adjusted(1, 1, -1, -1), look.pressed || look.hover ? c.selectedLine : c.panelBorder);
 }
 
 void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const
 {
-    p.fillRect(band(rect, orientation, 6), Theme::divider);
+    p.fillRect(band(rect, orientation, 6), c.divider);
     if (!filled.isEmpty()) {
-        p.fillRect(band(filled, orientation, 6), Theme::detect);
+        p.fillRect(band(filled, orientation, 6), c.signal);
     }
 }
 
@@ -268,18 +269,18 @@ void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look)
 {
     // docked tabs: the selected one on a slate fill over a steel-blue indicator
     if (selected) {
-        p.fillRect(rect, Theme::selected);
-        p.fillRect(QRect(rect.left(), rect.bottom() - 1, rect.width(), 2), Theme::selectedLine);
+        p.fillRect(rect, c.selected);
+        p.fillRect(QRect(rect.left(), rect.bottom() - 1, rect.width(), 2), c.selectedLine);
     }
     if (look.focusVisible) {
-        hairline(p, rect, Theme::selectedLine);
+        hairline(p, rect, c.selectedLine);
     }
 }
 
 void Style::tabPane(QPainter& p, const QWidget*, const QRect& rect) const
 {
-    p.fillRect(rect, Theme::panel);
-    hairline(p, rect, Theme::panelBorder);
+    p.fillRect(rect, c.panel);
+    hairline(p, rect, c.panelBorder);
 }
 
 void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
@@ -287,77 +288,82 @@ void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) 
     const QRectF ring = QRectF(rect).adjusted(8, 8, -8, -8);
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(Theme::divider, 2, Qt::SolidLine, Qt::FlatCap));
+    p.setPen(QPen(c.divider, 2, Qt::SolidLine, Qt::FlatCap));
     p.drawArc(ring, 225 * 16, -270 * 16);
     if (value > 0) {
-        p.setPen(QPen(look.enabled ? Theme::selectedLine : Theme::panelBorder, 2, Qt::SolidLine, Qt::FlatCap));
+        p.setPen(QPen(look.enabled ? c.selectedLine : c.panelBorder, 2, Qt::SolidLine, Qt::FlatCap));
         p.drawArc(ring, 225 * 16, int(-270 * 16 * value));
     }
     const QPointF at = dialPoint(ring, value, ring.width() / 2);
     p.setPen(Qt::NoPen);
-    p.setBrush(!look.enabled ? Theme::textDisabled : look.pressed || look.hover ? Theme::textTitle : Theme::text);
+    p.setBrush(!look.enabled ? c.textDisabled : look.pressed || look.hover ? c.textTitle : c.text);
     p.drawRect(QRectF(at - QPointF(5, 5), QSizeF(10, 10)));
     p.restore();
 }
 
 void Style::display(QPainter& p, const QRect& rect) const
 {
-    p.fillRect(rect, Theme::sunken);
-    hairline(p, rect, Theme::panelBorder);
+    p.fillRect(rect, c.sunken);
+    hairline(p, rect, c.panelBorder);
 }
 
 QColor Style::displayText() const
 {
-    return Theme::textOverlay;
+    return c.textOverlay;
 }
 
 // ---- menus & items ------------------------------------------------------------------------------
 
 void Style::menuBar(QPainter& p, const QWidget*, const QRect& rect) const
 {
-    p.fillRect(rect, Theme::canvas);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), Theme::divider);
+    p.fillRect(rect, c.canvas);
+    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), c.divider);
 }
 
 QColor Style::menuBarText(bool active) const
 {
-    return active ? Theme::textSelected : Theme::text;
+    return active ? c.textSelected : c.text;
 }
 
 void Style::menu(QPainter& p, const QRect& rect) const
 {
-    p.fillRect(rect, Theme::panel);
-    hairline(p, rect, Theme::panelBorder);
+    p.fillRect(rect, c.panel);
+    hairline(p, rect, c.panelBorder);
 }
 
 void Style::highlight(QPainter& p, const QRect& rect, bool inBar) const
 {
-    p.fillRect(inBar ? rect : rect.adjusted(1, 0, -1, 0), Theme::selected);
+    p.fillRect(inBar ? rect : rect.adjusted(1, 0, -1, 0), c.selected);
 }
 
 void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
 {
-    p.fillRect(rect, look.checked ? Theme::selected : Theme::rowHover);
+    p.fillRect(rect, look.checked ? c.selected : c.rowHover);
 }
 
 void Style::header(QPainter& p, const QRect& rect, const Look& look) const
 {
     // no fill, no bold: a divider under the column names
-    p.fillRect(rect, look.hover ? Theme::rowHover : Theme::panel);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), Theme::divider);
+    p.fillRect(rect, look.hover ? c.rowHover : c.panel);
+    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), c.divider);
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const
 {
     // the overlay caption chip, made opaque (tooltips float over anything)
-    p.fillRect(rect, Theme::canvas);
-    hairline(p, rect, Theme::panelBorder);
+    p.fillRect(rect, c.canvas);
+    hairline(p, rect, c.panelBorder);
 }
 
 void Style::focusFrame(QPainter& p, const QRect& rect) const
 {
-    // the camera under inspection is the tracked object: a 2px detection-green box, square corners
-    hairline(p, rect, Theme::detect, 2);
+    // the camera under inspection is the tracked object: a 2px azure box, square corners
+    hairline(p, rect, mark(), 2);
+}
+
+QColor Style::ownMark() const
+{
+    return c.signal;
 }
 
 void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const
@@ -367,7 +373,10 @@ void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) 
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
     p.setPen(Qt::NoPen);
-    p.setBrush(lit ? color : alpha(color, 70));
+    // no greens: the live (playing) state takes the signal colour
+    const int hue = color.hsvHue();
+    const QColor status = hue >= 70 && hue <= 170 ? c.signal : color;
+    p.setBrush(lit ? status : alpha(status, 70));
     p.drawEllipse(r);
     p.restore();
 }

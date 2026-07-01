@@ -45,6 +45,7 @@ public:
     void header(QPainter& p, const QRect& rect, const Look& look) const override;
     void tooltip(QPainter& p, const QRect& rect) const override;
     void focusFrame(QPainter& p, const QRect& rect) const override;
+    QColor ownMark() const override;
     void lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const override;
 
 private:

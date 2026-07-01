@@ -96,9 +96,16 @@ public:
     virtual void selection(QPainter& p, const QRect& rect, const Look& look) const = 0;
     virtual void header(QPainter& p, const QRect& rect, const Look& look) const = 0;
     virtual void tooltip(QPainter& p, const QRect& rect) const = 0;
-    /// Marks the selected card of a board (e.g. the camera being inspected); the mark may spill
-    /// a few pixels outside @p rect.
+    /// Marks the selected card of a board (e.g. the camera being inspected) in mark(); the mark
+    /// may spill a few pixels outside @p rect.
     virtual void focusFrame(QPainter& p, const QRect& rect) const;
+    /// The design's own colour for the selection mark. By default, the highlight.
+    virtual QColor ownMark() const;
+    /// Colour of the selection mark: the user's choice, else the design's own.
+    QColor mark() const;
+    /// The user's colour for the selection mark in every design (invalid: each design's own).
+    static void setMarkColor(const QColor& color);
+    static QColor markColor();
     /// Round status lamp in @p color, lit or dark.
     virtual void lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const;
 

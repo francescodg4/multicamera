@@ -25,12 +25,12 @@ namespace {
     }
 
     /// Soft LCD-blue ring round a focused or hovered control.
-    void glowRing(QPainter& p, const QRectF& r, qreal radius, int strength)
+    void glowRing(QPainter& p, const QRectF& r, qreal radius, int strength, const QColor& glow = Theme::lcdGlow)
     {
         p.save();
         p.setRenderHint(QPainter::Antialiasing);
-        p.strokePath(rounded(r.adjusted(-1, -1, 1, 1), radius + 1), QPen(alpha(Theme::lcdGlow, strength / 3), 3));
-        p.strokePath(rounded(r, radius), QPen(alpha(Theme::lcdGlow, strength), 1.2));
+        p.strokePath(rounded(r.adjusted(-1, -1, 1, 1), radius + 1), QPen(alpha(glow, strength / 3), 3));
+        p.strokePath(rounded(r, radius), QPen(alpha(glow, strength), 1.2));
         p.restore();
     }
 
@@ -457,11 +457,16 @@ void Style::focusFrame(QPainter& p, const QRect& rect) const
 {
     // the selected module lights up in LCD blue
     const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    glowRing(p, r, Theme::radiusPanel, 255);
+    glowRing(p, r, Theme::radiusPanel, 255, mark());
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.strokePath(rounded(r.adjusted(1.5, 1.5, -1.5, -1.5), Theme::radiusPanel - 1), QPen(alpha(Theme::accent, 200), 1.5));
+    p.strokePath(rounded(r.adjusted(1.5, 1.5, -1.5, -1.5), Theme::radiusPanel - 1), QPen(alpha(markColor().isValid() ? mark() : Theme::accent, 200), 1.5));
     p.restore();
+}
+
+QColor Style::ownMark() const
+{
+    return Theme::lcdGlow;
 }
 
 void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const

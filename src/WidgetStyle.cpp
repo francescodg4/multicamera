@@ -97,11 +97,37 @@ QColor WidgetStyle::tileText() const
     return standardPalette().color(QPalette::ButtonText);
 }
 
+namespace {
+
+QColor userMark; ///< invalid: the design's own
+
+} // namespace
+
+QColor WidgetStyle::ownMark() const
+{
+    return standardPalette().color(QPalette::Highlight);
+}
+
+QColor WidgetStyle::mark() const
+{
+    return userMark.isValid() ? userMark : ownMark();
+}
+
+void WidgetStyle::setMarkColor(const QColor& color)
+{
+    userMark = color;
+}
+
+QColor WidgetStyle::markColor()
+{
+    return userMark;
+}
+
 void WidgetStyle::focusFrame(QPainter& p, const QRect& rect) const
 {
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(standardPalette().color(QPalette::Highlight), 2));
+    p.setPen(QPen(mark(), 2));
     p.setBrush(Qt::NoBrush);
     p.drawRoundedRect(QRectF(rect).adjusted(1, 1, -1, -1), 6, 6);
     p.restore();

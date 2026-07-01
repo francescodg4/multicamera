@@ -13,9 +13,10 @@ checked by eye.
 
 - **Control room**: play, pause or stop every camera at once, choose the board layout (automatic or
   1–4 columns), loop recordings at their end, and pick the interface **Design** (and **Dark** mode for
-  the designs that have one).
+  the designs that have one), and the **Highlight** colour of the mark round the camera under inspection
+  (a colour picker; **Reset** goes back to the design's own).
 - **Board**: each camera shows a status lamp (play / pause / stop), the time and number of the picture
-  on screen. **Click** a camera to inspect it; **double click** maximises it: in single-camera mode the control room steps aside, and the camera keeps its own controls.
+  on screen. **Click** a camera to inspect it; **double click** maximises it: in single-camera mode the control room steps aside, and the camera keeps its own controls (without the selection mark).
 - **Camera controls** (on the camera clicked, over the bottom of its card): previous frame, play / pause,
   stop, next frame, the time bar (drag or click to move) and a readout of the time and picture number /
   pictures in all (its tooltip adds the length and frame rate). The picture shrinks to make room for
@@ -50,10 +51,10 @@ its design rules. The choice, and the mode, are remembered.
   in its own accent colour (teal, magenta, purple, orange, green, red, blue), light Segoe section titles,
   square 2px stroke controls that fill with the accent when pressed, circular app-bar buttons on the
   camera's tile, and the selected tile marked by a white inner border and a check in its corner.
-- **Flat** (`flat`): a dark operations console for long watches in a dim room: navy panels with a
-  hairline and a sentence-case title on a black canvas, a gutter of canvas round each camera, sunken
-  fields, docked tabs over a steel-blue indicator, and one signal colour, detection green, for the
-  camera under inspection (a square 2px box) and the primary action.
+- **Flat** (`flat`): a slate operations console: lighter navy panels with a hairline and a
+  sentence-case title on a slate canvas, a gutter of canvas round each camera, sunken fields, docked
+  tabs over a steel-blue indicator, and one signal colour, azure, for the camera under inspection
+  (a square 2px box), live cameras and the primary action. No greens.
 - **Winamp** (`winamp`): brushed metal, cobalt LCD glass, LED status lamps, the selected module lit
   in LCD blue.
 

@@ -91,6 +91,7 @@ int main(int argc, char* argv[])
 
     InspectionWindow window(sources);
     window.setTheme(looks.first().id, looks.first().dark);
+    window.setMarkColor(Themes::savedMark());
     window.grid()->setColumns(parser.value(columnsOption).toInt());
     window.show();
     if (!parser.isSet(pausedOption)) {

@@ -398,9 +398,14 @@ void Style::focusFrame(QPainter& p, const QRect& rect) const
     const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.strokePath(rounded(r.adjusted(-2, -2, 2, 2), Theme::radiusCard + 2), QPen(alpha(Theme::focus, 70), 3));
-    p.strokePath(rounded(r, Theme::radiusCard), QPen(Theme::focus, 2));
+    p.strokePath(rounded(r.adjusted(-2, -2, 2, 2), Theme::radiusCard + 2), QPen(alpha(mark(), 70), 3));
+    p.strokePath(rounded(r, Theme::radiusCard), QPen(mark(), 2));
     p.restore();
+}
+
+QColor Style::ownMark() const
+{
+    return Theme::focus;
 }
 
 void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const

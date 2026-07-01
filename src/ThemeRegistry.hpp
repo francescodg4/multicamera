@@ -1,5 +1,6 @@
 #pragma once
 
+#include <QColor>
 #include <QList>
 #include <QString>
 
@@ -30,6 +31,10 @@ void save(const QString& id);
 /// The mode chosen last time for the themes that have two (dark at first).
 bool savedDark();
 void saveDark(bool dark);
+
+/// The selection mark colour chosen last time (invalid: each design's own).
+QColor savedMark();
+void saveMark(const QColor& color);
 
 /// A theme in one mode.
 struct Look {

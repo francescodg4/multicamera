@@ -51,6 +51,10 @@ void CameraGrid::relayout()
     grid->setContentsMargins(0, 0, 0, 0);
     grid->setSpacing(0); // the cards touch, for the largest pictures
 
+    for (CameraTile* tile : std::as_const(m_tiles)) {
+        tile->setMarkVisible(m_maximized < 0); // a camera alone needs no mark to be told apart
+    }
+
     if (m_maximized >= 0) {
         for (int i = 0; i < m_tiles.size(); ++i) {
             m_tiles[i]->setVisible(i == m_maximized);

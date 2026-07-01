@@ -5,11 +5,11 @@
 
 namespace flat {
 
-/// The standard widgets as a flat dark operations console: "quiet chrome, loud data". Navy panels
-/// with a hairline and a sentence-case title on a black canvas, cameras separated by gutters of
-/// canvas, docked tabs with a steel-blue indicator, sunken fields, and the one signal colour
-/// (detection green) for the camera under inspection and the primary action. No gradients,
-/// glows, shadows or bevels.
+/// The standard widgets as a flat slate operations console: "quiet chrome, loud data". Navy
+/// panels with a hairline and a sentence-case title on a slate canvas, cameras separated by
+/// gutters of canvas, docked tabs with a steel-blue indicator, sunken fields, and the one signal
+/// colour (azure) for the camera under inspection, live status and the primary action. No greens,
+/// no gradients, glows, shadows or bevels.
 class Style : public WidgetStyle {
 public:
     Style();
@@ -46,7 +46,11 @@ public:
     void header(QPainter& p, const QRect& rect, const Look& look) const override;
     void tooltip(QPainter& p, const QRect& rect) const override;
     void focusFrame(QPainter& p, const QRect& rect) const override;
+    QColor ownMark() const override;
     void lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const override;
+
+private:
+    Theme::Palette c;
 };
 
 } // namespace flat

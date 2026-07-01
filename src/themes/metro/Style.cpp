@@ -361,7 +361,7 @@ void Style::tooltip(QPainter& p, const QRect& rect) const
 void Style::focusFrame(QPainter& p, const QRect& rect) const
 {
     // the selected tile: an inner border, and a check mark in a triangle at the top-right corner
-    stroke(p, rect, Theme::tileText, 3);
+    stroke(p, rect, mark(), 3);
     constexpr int Corner = 26;
     QPainterPath triangle;
     triangle.moveTo(rect.right() + 1 - Corner, rect.top());
@@ -370,9 +370,14 @@ void Style::focusFrame(QPainter& p, const QRect& rect) const
     triangle.closeSubpath();
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
-    p.fillPath(triangle, Theme::tileText);
+    p.fillPath(triangle, mark());
     p.restore();
-    checkMark(p, QRectF(rect.right() + 1 - Corner * 0.52, rect.top() + 2, Corner * 0.48, Corner * 0.48), Theme::charms, 1.8);
+    checkMark(p, QRectF(rect.right() + 1 - Corner * 0.52, rect.top() + 2, Corner * 0.48, Corner * 0.48), mark().lightness() > 140 ? Theme::charms : Theme::tileText, 1.8);
+}
+
+QColor Style::ownMark() const
+{
+    return Theme::tileText;
 }
 
 void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const

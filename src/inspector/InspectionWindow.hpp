@@ -9,6 +9,7 @@ class CameraPipeline;
 class QAction;
 class QActionGroup;
 class QCheckBox;
+class QColor;
 class QComboBox;
 class QPushButton;
 
@@ -29,6 +30,9 @@ public:
     /// Draws the whole application with the design of theme @p id, in its dark or light mode if
     /// it has two.
     void setTheme(const QString& id, bool dark);
+    /// Colour of the mark round the camera under inspection, in every design (invalid: each
+    /// design's own).
+    void setMarkColor(const QColor& color);
 
     /// The camera under inspection (null if none is selected).
     CameraPipeline* current() const;
@@ -49,6 +53,9 @@ private:
     QWidget* controlBox();
     void chooseTheme(const QString& id); ///< user choice: applied and remembered
     void chooseDark(bool dark); ///< user choice: applied and remembered
+    void chooseMarkColor(const QColor& color); ///< user choice: applied and remembered
+    void pickMarkColor(); ///< the colour picker, from the control room
+    void updateMarkSwatch(); ///< the control room shows the mark colour of the design in use
     void toggleMaximized(int index);
     void tintIcons(); ///< button icons follow the text colour of the interface
 
@@ -62,6 +69,8 @@ private:
     QWidget* m_controlRoom = nullptr;
     QComboBox* m_themeSelector = nullptr;
     QCheckBox* m_darkBox = nullptr;
+    QPushButton* m_markButton = nullptr;
+    QPushButton* m_markResetButton = nullptr;
     QComboBox* m_layout = nullptr;
     QCheckBox* m_loop = nullptr;
     QPushButton* m_playAllButton = nullptr;

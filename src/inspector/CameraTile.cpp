@@ -92,6 +92,20 @@ void CameraTile::setSelected(bool selected)
     }
 }
 
+void CameraTile::setMarkVisible(bool visible)
+{
+    if (m_markVisible != visible) {
+        m_markVisible = visible;
+        refreshChrome();
+    }
+}
+
+void CameraTile::refreshChrome()
+{
+    m_chrome = QPixmap();
+    update();
+}
+
 QSize CameraTile::sizeHint() const
 {
     return { 400, 300 };
@@ -153,7 +167,7 @@ void CameraTile::paintChrome()
     const QString caption = fontMetrics().elidedText(QStringLiteral("%1 · %2").arg(m_camera->source().name, m_camera->source().label), Qt::ElideRight, card.width() - 72);
     style->tile(p, this, card, title, caption, m_index);
     style->display(p, screenRect());
-    if (m_selected) {
+    if (m_selected && m_markVisible) {
         style->focusFrame(p, card.adjusted(RingInset, RingInset, -RingInset, -RingInset));
     }
 }

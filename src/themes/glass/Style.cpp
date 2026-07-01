@@ -448,16 +448,21 @@ void Style::focusFrame(QPainter& p, const QRect& rect) const
     outside = outside.subtracted(rounded(r, Theme::radiusCard));
     p.save();
     p.setClipPath(outside, Qt::IntersectClip);
-    Glass::paintGlow(p, r, Theme::radiusCard, Theme::glowAccent, 0.9);
+    Glass::paintGlow(p, r, Theme::radiusCard, mark(), 0.9);
     p.restore();
 
     p.save();
     p.setRenderHint(QPainter::Antialiasing);
     QLinearGradient rim(r.topLeft(), r.bottomRight());
-    rim.setColorAt(0, Theme::cyan);
-    rim.setColorAt(1, Theme::accent);
+    rim.setColorAt(0, markColor().isValid() ? mark().lighter(130) : Theme::cyan);
+    rim.setColorAt(1, markColor().isValid() ? mark() : Theme::accent);
     p.strokePath(rounded(r, Theme::radiusCard), QPen(QBrush(rim), 1.5));
     p.restore();
+}
+
+QColor Style::ownMark() const
+{
+    return Theme::glowAccent;
 }
 
 void Style::lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const

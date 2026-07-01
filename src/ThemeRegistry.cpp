@@ -81,6 +81,20 @@ void saveDark(bool dark)
     QSettings().setValue(QStringLiteral("dark"), dark);
 }
 
+QColor savedMark()
+{
+    return QColor(QSettings().value(QStringLiteral("mark")).toString());
+}
+
+void saveMark(const QColor& color)
+{
+    if (color.isValid()) {
+        QSettings().setValue(QStringLiteral("mark"), color.name());
+    } else {
+        QSettings().remove(QStringLiteral("mark"));
+    }
+}
+
 QString Look::name() const
 {
     const ThemeEntry* theme = find(id);

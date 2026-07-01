@@ -5,11 +5,13 @@
 #include "WidgetStyle.hpp"
 #include "inspector/CameraGrid.hpp"
 #include "inspector/CameraPipeline.hpp"
+#include "inspector/CameraTile.hpp"
 
 #include <QAction>
 #include <QActionGroup>
 #include <QApplication>
 #include <QCheckBox>
+#include <QColorDialog>
 #include <QComboBox>
 #include <QGroupBox>
 #include <QHBoxLayout>
@@ -267,6 +269,13 @@ QWidget* InspectionWindow::controlBox()
     m_darkBox->setToolTip(tr("Dark or light mode, for the designs that have both (Ctrl+D)"));
     connect(m_darkBox, &QCheckBox::toggled, this, &InspectionWindow::chooseDark);
 
+    m_markButton = new QPushButton(tr("Highlight"));
+    connect(m_markButton, &QPushButton::clicked, this, &InspectionWindow::pickMarkColor);
+    m_markResetButton = new QPushButton(tr("Reset"));
+    m_markResetButton->setFlat(true);
+    m_markResetButton->setToolTip(tr("Back to the design's own highlight colour"));
+    connect(m_markResetButton, &QPushButton::clicked, this, [this] { chooseMarkColor(QColor()); });
+
     auto* row = new QHBoxLayout(box);
     row->addWidget(m_playAllButton);
     row->addWidget(m_pauseAllButton);
@@ -280,6 +289,9 @@ QWidget* InspectionWindow::controlBox()
     row->addWidget(new QLabel(tr("Design")));
     row->addWidget(m_themeSelector);
     row->addWidget(m_darkBox);
+    row->addSpacing(8);
+    row->addWidget(m_markButton);
+    row->addWidget(m_markResetButton);
     return box;
 }
 
@@ -359,7 +371,53 @@ void InspectionWindow::setTheme(const QString& id, bool dark)
     m_darkAction->setEnabled(theme->modes);
     statusBar()->showMessage(theme->modes ? tr("Interface: %1, %2 mode").arg(theme->name, dark ? tr("dark") : tr("light")) : tr("Interface: %1").arg(theme->name), 4000);
     tintIcons();
+    updateMarkSwatch();
     update();
+}
+
+void InspectionWindow::setMarkColor(const QColor& color)
+{
+    WidgetStyle::setMarkColor(color);
+    for (CameraTile* tile : m_grid->tiles()) {
+        tile->refreshChrome();
+    }
+    updateMarkSwatch();
+}
+
+void InspectionWindow::chooseMarkColor(const QColor& color)
+{
+    setMarkColor(color);
+    Themes::saveMark(color);
+}
+
+void InspectionWindow::pickMarkColor()
+{
+    const auto* style = qobject_cast<const WidgetStyle*>(this->style());
+    const QColor color = QColorDialog::getColor(style ? style->mark() : WidgetStyle::markColor(), this, tr("Highlight colour"));
+    if (color.isValid()) {
+        chooseMarkColor(color);
+    }
+}
+
+void InspectionWindow::updateMarkSwatch()
+{
+    const auto* style = qobject_cast<const WidgetStyle*>(this->style());
+    if (!style || !m_markButton) {
+        return;
+    }
+    const bool custom = WidgetStyle::markColor().isValid();
+    const QColor color = style->mark();
+    const int side = m_markButton->fontMetrics().height();
+    QPixmap swatch(side, side);
+    swatch.fill(color);
+    QPainter p(&swatch);
+    p.setPen(QApplication::palette().color(QPalette::ButtonText));
+    p.drawRect(swatch.rect().adjusted(0, 0, -1, -1));
+    p.end();
+    m_markButton->setIcon(QIcon(swatch));
+    m_markButton->setToolTip(custom ? tr("Colour of the mark round the camera under inspection: %1 (click to change)").arg(color.name())
+                                    : tr("Colour of the mark round the camera under inspection: the design's own (click to change)"));
+    m_markResetButton->setVisible(custom);
 }
 
 void InspectionWindow::chooseTheme(const QString& id)

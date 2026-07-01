@@ -41,6 +41,7 @@ private slots:
 
     void cleanup()
     {
+        m_window->setMarkColor(QColor()); // the mark colour is shared by every window
         m_window.reset();
     }
 
@@ -230,15 +231,43 @@ private slots:
         const ThemeEntry* flat = Themes::find(QStringLiteral("flat"));
         QVERIFY(flat && !flat->modes);
         m_window->setTheme(flat->id, true);
-        QCOMPARE(QApplication::palette().color(QPalette::Window), QColor(0, 0, 0));
+        QCOMPARE(QApplication::palette().color(QPalette::Window), QColor(0x1b, 0x22, 0x2c));
         m_window->select(1);
         const QList<CameraTile*>& tiles = m_window->grid()->tiles();
         const QImage idle = tiles[0]->grab().toImage();
-        QCOMPARE(idle.pixelColor(1, 1), QColor(0, 0, 0)); // a gutter of canvas round each camera
-        QCOMPARE(idle.pixelColor(3, 3), QColor(0x16, 0x20, 0x2c)); // the panel's hairline
-        QCOMPARE(idle.pixelColor(5, 5), QColor(0x0a, 0x11, 0x1b)); // the navy panel
-        // the camera under inspection: a detection-green box
-        QCOMPARE(tiles[1]->grab().toImage().pixelColor(4, 4), QColor(0x5c, 0xd6, 0x6b));
+        QCOMPARE(idle.pixelColor(1, 1), QColor(0x1b, 0x22, 0x2c)); // a gutter of canvas round each camera
+        QCOMPARE(idle.pixelColor(3, 3), QColor(0x3b, 0x48, 0x5a)); // the panel's hairline
+        QCOMPARE(idle.pixelColor(5, 5), QColor(0x27, 0x31, 0x3f)); // the slate panel
+        // the camera under inspection: an azure box
+        QCOMPARE(tiles[1]->grab().toImage().pixelColor(4, 4), QColor(0x5c, 0xb4, 0xf5));
+    }
+
+    void singleCameraIsNotMarked()
+    {
+        m_window->setTheme(QStringLiteral("flat"), true);
+        m_window->select(1);
+        CameraTile* tile = m_window->grid()->tiles()[1];
+        QCOMPARE(tile->grab().toImage().pixelColor(4, 4), QColor(0x5c, 0xb4, 0xf5));
+        m_window->grid()->setMaximized(1);
+        QVERIFY(tile->isSelected()); // still inspected, with its controls
+        QCOMPARE(tile->grab().toImage().pixelColor(4, 4), QColor(0x27, 0x31, 0x3f)); // but not marked
+        m_window->grid()->setMaximized(-1);
+        QCOMPARE(tile->grab().toImage().pixelColor(4, 4), QColor(0x5c, 0xb4, 0xf5));
+    }
+
+    void highlightColourIsTheUsers()
+    {
+        m_window->select(1);
+        CameraTile* tile = m_window->grid()->tiles()[1];
+        const QColor orange(0xff, 0x80, 0x00);
+        for (const QString& id : { QStringLiteral("flat"), QStringLiteral("metro") }) {
+            m_window->setTheme(id, true);
+            m_window->setMarkColor(orange);
+            QCOMPARE(tile->grab().toImage().pixelColor(4, 4), orange);
+            m_window->setMarkColor(QColor()); // back to the design's own
+            QVERIFY(tile->grab().toImage().pixelColor(4, 4) != orange);
+        }
+        QCOMPARE(tile->grab().toImage().pixelColor(4, 4), QColor(0xff, 0xff, 0xff)); // Metro's white
     }
 
     void revolutHasTwoModes()

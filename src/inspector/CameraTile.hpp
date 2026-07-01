@@ -24,6 +24,10 @@ public:
     bool isSelected() const { return m_selected; }
     /// Selects the camera: its controls show, and hide again when it is deselected.
     void setSelected(bool selected);
+    /// Whether a selected camera wears the design's selection mark (not when it is alone on the board).
+    void setMarkVisible(bool visible);
+    /// Draws the card again, e.g. for a new selection mark colour.
+    void refreshChrome();
 
     /// The display on the card, where the pictures go.
     QRect screenRect() const;
@@ -54,5 +58,6 @@ private:
     CameraControls* m_controls;
     int m_index; ///< place on the board: designs may colour each camera's card
     bool m_selected = false;
+    bool m_markVisible = true;
     QPixmap m_chrome;
 };
