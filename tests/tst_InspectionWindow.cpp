@@ -225,6 +225,22 @@ private slots:
         }
     }
 
+    void flatOperationsConsole()
+    {
+        const ThemeEntry* flat = Themes::find(QStringLiteral("flat"));
+        QVERIFY(flat && !flat->modes);
+        m_window->setTheme(flat->id, true);
+        QCOMPARE(QApplication::palette().color(QPalette::Window), QColor(0, 0, 0));
+        m_window->select(1);
+        const QList<CameraTile*>& tiles = m_window->grid()->tiles();
+        const QImage idle = tiles[0]->grab().toImage();
+        QCOMPARE(idle.pixelColor(1, 1), QColor(0, 0, 0)); // a gutter of canvas round each camera
+        QCOMPARE(idle.pixelColor(3, 3), QColor(0x16, 0x20, 0x2c)); // the panel's hairline
+        QCOMPARE(idle.pixelColor(5, 5), QColor(0x0a, 0x11, 0x1b)); // the navy panel
+        // the camera under inspection: a detection-green box
+        QCOMPARE(tiles[1]->grab().toImage().pixelColor(4, 4), QColor(0x5c, 0xd6, 0x6b));
+    }
+
     void revolutHasTwoModes()
     {
         QVERIFY(!Themes::find(QStringLiteral("emerald")));

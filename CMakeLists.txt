@@ -27,6 +27,9 @@ qt_add_library(themes STATIC
   src/Icons.cpp src/Icons.hpp
   src/ThemeRegistry.cpp src/ThemeRegistry.hpp
   src/WidgetStyle.cpp src/WidgetStyle.hpp
+  src/themes/flat/Entry.cpp
+  src/themes/flat/Style.cpp src/themes/flat/Style.hpp
+  src/themes/flat/Theme.cpp src/themes/flat/Theme.hpp
   src/themes/glass/Entry.cpp
   src/themes/glass/Style.cpp src/themes/glass/Style.hpp
   src/themes/glass/Theme.cpp src/themes/glass/Theme.hpp

@@ -211,7 +211,7 @@ void InspectionWindow::createMenus()
                "<tr><td><b>S</b></td><td>stop</td></tr>"
                "<tr><td><b>F</b></td><td>maximise the camera (or double click it)</td></tr>"
                "<tr><td><b>Ctrl+P</b> / <b>Ctrl+Shift+P</b> / <b>Ctrl+.</b></td><td>play / pause / stop all</td></tr>"
-               "<tr><td><b>Ctrl+1</b> … <b>Ctrl+4</b></td><td>interface design</td></tr>"
+               "<tr><td><b>Ctrl+1</b> … <b>Ctrl+5</b></td><td>interface design</td></tr>"
                "<tr><td><b>Ctrl+D</b></td><td>dark / light mode</td></tr>"
                "</table>"));
     });
@@ -260,7 +260,7 @@ QWidget* InspectionWindow::controlBox()
         m_themeSelector->addItem(theme.name, theme.id);
         m_themeSelector->setItemData(m_themeSelector->count() - 1, theme.description, Qt::ToolTipRole);
     }
-    m_themeSelector->setToolTip(tr("Interface design (Ctrl+1 … 4)"));
+    m_themeSelector->setToolTip(tr("Interface design (Ctrl+1 … 5)"));
     connect(m_themeSelector, &QComboBox::currentIndexChanged, this, [this] { chooseTheme(m_themeSelector->currentData().toString()); });
 
     m_darkBox = new QCheckBox(tr("Dark"));

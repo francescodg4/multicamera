@@ -7,6 +7,9 @@
 #include <QSettings>
 
 // each theme registers itself through one factory function
+namespace flat {
+ThemeEntry themeEntry();
+}
 namespace glass {
 ThemeEntry themeEntry();
 }
@@ -29,6 +32,7 @@ const QList<ThemeEntry>& all()
         revolut::themeEntry(),
         winamp::themeEntry(),
         metro::themeEntry(),
+        flat::themeEntry(),
     };
     return themes;
 }

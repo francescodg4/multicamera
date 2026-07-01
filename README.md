@@ -32,7 +32,7 @@ checked by eye.
 | **S** | stop |
 | **F** | maximise the camera |
 | **Ctrl+P** / **Ctrl+Shift+P** / **Ctrl+.** | play / pause / stop all |
-| **Ctrl+1** … **Ctrl+4** | interface design |
+| **Ctrl+1** … **Ctrl+5** | interface design |
 | **Ctrl+D** | dark / light mode (Revolut, Metro) |
 
 ## Interface designs
@@ -50,6 +50,10 @@ its design rules. The choice, and the mode, are remembered.
   in its own accent colour (teal, magenta, purple, orange, green, red, blue), light Segoe section titles,
   square 2px stroke controls that fill with the accent when pressed, circular app-bar buttons on the
   camera's tile, and the selected tile marked by a white inner border and a check in its corner.
+- **Flat** (`flat`): a dark operations console for long watches in a dim room: navy panels with a
+  hairline and a sentence-case title on a black canvas, a gutter of canvas round each camera, sunken
+  fields, docked tabs over a steel-blue indicator, and one signal colour, detection green, for the
+  camera under inspection (a square 2px box) and the primary action.
 - **Winamp** (`winamp`): brushed metal, cobalt LCD glass, LED status lamps, the selected module lit
   in LCD blue.
 
@@ -94,7 +98,7 @@ ctest --test-dir build --output-on-failure
 
 | `inspector` option | |
 |---|---|
-| `--theme <id>` | design: `glass`, `revolut`, `winamp`, `metro` (default: the last one selected) |
+| `--theme <id>` | design: `glass`, `revolut`, `winamp`, `metro`, `flat` (default: the last one selected) |
 | `--mode <light|dark>` | mode of the designs that have two (default: the last one selected) |
 | `--videos <dir>` | folder of the recordings (default: `./videos`) |
 | `--test-cameras <n>` | test cameras after the recordings (default 4) |
