@@ -44,12 +44,4 @@ QFont font(int pixelSize, int weight)
     return f;
 }
 
-QFont mono(int pixelSize)
-{
-    QFont f(QStringList { QStringLiteral("Consolas"), QStringLiteral("DejaVu Sans Mono") });
-    f.setStyleHint(QFont::Monospace);
-    f.setPixelSize(pixelSize);
-    return f;
-}
-
 } // namespace flat::Theme

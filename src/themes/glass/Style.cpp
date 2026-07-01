@@ -78,7 +78,6 @@ Style::Style()
         m.arrow = 10;
         m.groove = 6;
         m.scroll = 8;
-        m.tab = 36;
         m.title = 38;
         m.row = 28;
         m.margin = 16;
@@ -224,25 +223,6 @@ void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Lo
     p.restore();
 }
 
-void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(1, 1, -1, -1);
-    if (!on) {
-        recessed(p, r, r.height() / 2, look);
-        return;
-    }
-    if (look.enabled) {
-        Glass::paintGlow(p, r, r.height() / 2, Theme::glowAccent, look.hover ? 1.0 : 0.6);
-    }
-    Glass::paintClay(p, r, r.height() / 2, look.enabled ? Theme::accent : QColor(0x2a, 0x3c, 0x52), look.pressed);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(Qt::NoPen);
-    p.setBrush(Qt::white);
-    p.drawEllipse(r.center(), r.width() * 0.2, r.width() * 0.2);
-    p.restore();
-}
-
 void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const
 {
     const QRectF r(rect);
@@ -305,68 +285,6 @@ void Style::scrollBar(QPainter& p, const QRect& groove, const QRect& handle, Qt:
     p.restore();
 }
 
-void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const
-{
-    const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    const qreal radius = std::min(r.width(), r.height()) / 2;
-    Look well;
-    recessed(p, r, radius, well);
-    radiant(p, QRectF(filled).adjusted(2, 2, -2, -2), radius - 2, orientation, true);
-}
-
-void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(3, 4, -3, -4);
-    const qreal radius = r.height() / 2;
-    if (selected) {
-        Glass::paintGlow(p, r, radius, Theme::glowAccent, look.enabled ? 0.6 : 0);
-        Glass::paintClay(p, r, radius, look.enabled ? Theme::accent : QColor(0x2a, 0x3c, 0x52), false);
-    } else if (look.hover) {
-        p.save();
-        p.setRenderHint(QPainter::Antialiasing);
-        p.fillPath(rounded(r, radius), QColor(255, 255, 255, 22));
-        p.restore();
-    }
-}
-
-void Style::tabPane(QPainter& p, const QWidget* widget, const QRect& rect) const
-{
-    Glass::paintSurface(p, widget, QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), Theme::radiusControl, Glass::Level::Card);
-}
-
-void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
-{
-    const QRectF ring = QRectF(rect).adjusted(8, 8, -8, -8);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(QColor(0, 0, 0, 100), 6, Qt::SolidLine, Qt::RoundCap));
-    p.drawArc(ring, 225 * 16, -270 * 16);
-    if (value > 0) {
-        const int span = int(-270 * 16 * value);
-        p.setPen(QPen(alpha(Theme::accent, look.enabled ? 70 : 0), 14, Qt::SolidLine, Qt::RoundCap)); // radiance
-        p.drawArc(ring, 225 * 16, span);
-        QConicalGradient g(ring.center(), 225);
-        g.setColorAt(0, Theme::cyan);
-        g.setColorAt(0.75, Theme::accent);
-        g.setColorAt(1, Theme::cyan);
-        p.setPen(QPen(look.enabled ? QBrush(g) : QBrush(QColor(255, 255, 255, 60)), 6, Qt::SolidLine, Qt::RoundCap));
-        p.drawArc(ring, 225 * 16, span);
-    }
-    p.restore();
-
-    const QRectF knob = ring.adjusted(ring.width() * 0.2, ring.height() * 0.2, -ring.width() * 0.2, -ring.height() * 0.2);
-    if (look.enabled && (look.hover || look.focus)) {
-        Glass::paintGlow(p, knob, knob.height() / 2, Theme::glowSoft, 0.8);
-    }
-    Glass::paintClay(p, knob, knob.height() / 2, look.enabled ? Theme::clay : QColor(0x2a, 0x3c, 0x52), look.pressed);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(Qt::NoPen);
-    p.setBrush(look.enabled ? Qt::white : QColor(255, 255, 255, 90));
-    p.drawEllipse(dialPoint(knob, value, knob.width() * 0.3), 3.5, 3.5);
-    p.restore();
-}
-
 void Style::display(QPainter& p, const QRect& rect) const
 {
     const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
@@ -425,13 +343,6 @@ void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
         p.fillPath(rounded(r, 8), QColor(255, 255, 255, 16));
     }
     p.restore();
-}
-
-void Style::header(QPainter& p, const QRect& rect, const Look& look) const
-{
-    p.fillRect(rect, QColor(255, 255, 255, look.hover ? 18 : 8));
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), QColor(255, 255, 255, 34));
-    p.fillRect(QRect(rect.right(), rect.top() + 6, 1, rect.height() - 12), QColor(255, 255, 255, 20));
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const

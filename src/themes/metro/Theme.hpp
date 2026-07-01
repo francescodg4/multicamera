@@ -18,7 +18,7 @@ struct Palette {
     QColor text2; ///< secondary text
     QColor border; ///< stroke of fields, check boxes, buttons at rest
     QColor line; ///< hairlines
-    QColor track; ///< empty part of sliders and progress
+    QColor track; ///< empty part of sliders
 };
 
 const Palette& palette(bool dark);

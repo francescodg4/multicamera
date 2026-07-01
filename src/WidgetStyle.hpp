@@ -2,7 +2,8 @@
 
 #include <QProxyStyle>
 
-/// Base of each theme's QStyle for the standard widgets (buttons, fields, sliders, item views...).
+/// Base of each theme's QStyle for the widgets of the inspector (buttons, check boxes, combo boxes,
+/// the time bar, menus, and the fields of the colour picker).
 ///
 /// It does the QStyle plumbing once (widget states, geometry, which primitive a widget asks for)
 /// and hands every surface to a small drawing vocabulary that each theme implements from its design
@@ -31,11 +32,10 @@ public:
         int control = 30; ///< height of buttons, fields, combo and spin boxes
         int padding = 12; ///< horizontal padding inside them
         int frame = 2; ///< frame width of fields and views
-        int indicator = 18; ///< check box and radio button
+        int indicator = 18; ///< check box
         int arrow = 10; ///< arrows of combo and spin boxes
         int groove = 6; ///< slider track thickness
         int scroll = 10; ///< scroll bar thickness
-        int tab = 30; ///< tab height
         int title = 30; ///< group box title band
         int row = 24; ///< minimum height of an item view row
         int margin = 14; ///< layout margins
@@ -69,7 +69,6 @@ public:
     /// Frame of item views and text edits (also fills their background).
     virtual void view(QPainter& p, const QRect& rect, const Look& look) const = 0;
     virtual void check(QPainter& p, const QRect& rect, Qt::CheckState state, const Look& look) const = 0;
-    virtual void radio(QPainter& p, const QRect& rect, bool on, const Look& look) const = 0;
     virtual void arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const = 0;
     virtual void spinButton(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const;
     /// Slider track; @p filled is the part between the minimum and the handle.
@@ -78,12 +77,7 @@ public:
     /// Size of the slider handle (width × height) for the orientation.
     virtual QSize handleSize(Qt::Orientation orientation) const = 0;
     virtual void scrollBar(QPainter& p, const QRect& groove, const QRect& handle, Qt::Orientation orientation, const Look& look) const = 0;
-    virtual void progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const = 0;
-    virtual void tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const = 0;
-    virtual void tabPane(QPainter& p, const QWidget* widget, const QRect& rect) const = 0;
-    /// Rotary knob; @p value goes 0..1 clockwise from 7:30 to 4:30 (see dialPoint()).
-    virtual void dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const = 0;
-    /// Frame of a QLCDNumber, and the colour of its segments.
+    /// Screen of a camera card, and the colour of the text shown on it when there is no picture.
     virtual void display(QPainter& p, const QRect& rect) const = 0;
     virtual QColor displayText() const = 0;
     /// Menu bar background; @p rect is always the whole bar (the painter may be clipped to a part).
@@ -94,7 +88,6 @@ public:
     virtual void highlight(QPainter& p, const QRect& rect, bool inBar) const = 0;
     /// Selected (look.checked) or hovered item of an item view.
     virtual void selection(QPainter& p, const QRect& rect, const Look& look) const = 0;
-    virtual void header(QPainter& p, const QRect& rect, const Look& look) const = 0;
     virtual void tooltip(QPainter& p, const QRect& rect) const = 0;
     /// Marks the selected card of a board (e.g. the camera being inspected) in mark(); the mark
     /// may spill a few pixels outside @p rect.
@@ -108,9 +101,6 @@ public:
     static QColor markColor();
     /// Round status lamp in @p color, lit or dark.
     virtual void lamp(QPainter& p, const QRect& rect, const QColor& color, bool lit) const;
-
-    /// Point on the dial's circle of @p radius for @p value (0..1).
-    static QPointF dialPoint(const QRectF& rect, qreal value, qreal radius);
 
     // ---- QStyle ---------------------------------------------------------------------------------
 

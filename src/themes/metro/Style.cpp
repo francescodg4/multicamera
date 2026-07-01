@@ -41,7 +41,6 @@ Style::Style(bool dark)
         m.arrow = 10;
         m.groove = 4;
         m.scroll = 8;
-        m.tab = 34;
         m.title = 36;
         m.row = 28;
         m.margin = 16;
@@ -207,23 +206,6 @@ void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Lo
     }
 }
 
-void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(1.5, 1.5, -1.5, -1.5);
-    const QColor ink = !look.enabled ? alpha(c.text2, 130) : look.pressed ? Theme::accent : c.text;
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(look.hover ? alpha(c.text, 22) : QColor(Qt::transparent));
-    p.setPen(QPen(ink, 2));
-    p.drawEllipse(r);
-    if (on) {
-        p.setPen(Qt::NoPen);
-        p.setBrush(ink);
-        p.drawEllipse(r.center(), r.width() * 0.24, r.height() * 0.24);
-    }
-    p.restore();
-}
-
 void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const
 {
     const QRectF r(rect);
@@ -267,47 +249,6 @@ void Style::scrollBar(QPainter& p, const QRect&, const QRect& handle, Qt::Orient
     p.fillRect(handle.adjusted(2, 2, -2, -2), look.pressed ? Theme::accent : look.hover ? c.text2 : alpha(c.text2, 130));
 }
 
-void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation) const
-{
-    p.fillRect(rect, c.track);
-    p.fillRect(filled, Theme::accent);
-}
-
-void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const
-{
-    // pivot headers: the selected one underlined in the accent
-    if (look.hover && !selected) {
-        p.fillRect(rect.adjusted(2, 2, -2, -2), alpha(c.text, 18));
-    }
-    if (selected) {
-        p.fillRect(QRect(rect.left() + 4, rect.bottom() - 3, rect.width() - 8, 3), Theme::accent);
-    }
-}
-
-void Style::tabPane(QPainter& p, const QWidget*, const QRect& rect) const
-{
-    p.fillRect(rect, c.surface);
-}
-
-void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
-{
-    const QRectF ring = QRectF(rect).adjusted(10, 10, -10, -10);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(c.track, 6, Qt::SolidLine, Qt::FlatCap));
-    p.drawArc(ring, 225 * 16, -270 * 16);
-    if (value > 0) {
-        p.setPen(QPen(look.enabled ? Theme::accent : alpha(Theme::accent, 110), 6, Qt::SolidLine, Qt::FlatCap));
-        p.drawArc(ring, 225 * 16, int(-270 * 16 * value));
-    }
-    // the thumb: a square notch on the ring
-    const QPointF at = dialPoint(ring, value, ring.width() / 2);
-    p.setPen(Qt::NoPen);
-    p.setBrush(!look.enabled ? c.border : look.pressed ? Theme::accent : c.text);
-    p.drawRect(QRectF(at - QPointF(5, 5), QSizeF(10, 10)));
-    p.restore();
-}
-
 void Style::display(QPainter& p, const QRect& rect) const
 {
     p.fillRect(rect, Theme::charms);
@@ -344,12 +285,6 @@ void Style::highlight(QPainter& p, const QRect& rect, bool inBar) const
 void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
 {
     p.fillRect(rect, look.checked ? Theme::accent : alpha(c.text, 22));
-}
-
-void Style::header(QPainter& p, const QRect& rect, const Look& look) const
-{
-    p.fillRect(rect, look.hover ? alpha(c.text, 18) : c.surface);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), c.line);
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const

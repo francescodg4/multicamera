@@ -23,14 +23,13 @@ struct Palette {
     QColor accentHover;
     QColor tint; ///< the accent's soft tint
     QColor line; ///< hairlines
-    QColor track; ///< empty part of sliders and progress
+    QColor track; ///< empty part of sliders
 };
 
 const Palette& palette(bool dark);
 
 // same in both modes
 inline const QColor focus { 0xf5, 0x9e, 0x0b }; ///< focus ring: amber
-inline const QColor success { 0x16, 0xa3, 0x4a };
 inline const QColor onAccent { 0xff, 0xff, 0xff }; ///< text on violet
 
 // geometry (--rui-radius-*)

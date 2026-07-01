@@ -53,8 +53,6 @@ inline constexpr int gutter = 6; ///< --flat-gutter: canvas between panels
 
 /// --flat-font-ui (Segoe UI, Noto Sans, DejaVu Sans), in pixels.
 QFont font(int pixelSize = 13, int weight = QFont::Normal);
-/// --flat-font-mono (Consolas, DejaVu Sans Mono), in pixels.
-QFont mono(int pixelSize = 12);
 
 } // namespace Theme
 

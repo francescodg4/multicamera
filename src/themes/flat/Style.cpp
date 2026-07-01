@@ -21,17 +21,6 @@ namespace {
         p.fillRect(QRect(rect.right() - width + 1, rect.top() + width, width, rect.height() - 2 * width), color);
     }
 
-    /// Band of @p thickness centred across @p rect (flat tracks are thinner than their widgets).
-    QRect band(const QRect& rect, Qt::Orientation orientation, int thickness)
-    {
-        if (orientation == Qt::Horizontal) {
-            const int h = std::min(thickness, rect.height());
-            return { rect.left(), rect.center().y() - h / 2 + 1, rect.width(), h };
-        }
-        const int w = std::min(thickness, rect.width());
-        return { rect.center().x() - w / 2 + 1, rect.top(), w, rect.height() };
-    }
-
     /// Panel with its section title at the top-left and a divider under it.
     void panel(QPainter& p, const Theme::Palette& c, const QRect& rect, const QRect& titleRect, const QString& title)
     {
@@ -60,7 +49,6 @@ Style::Style()
         m.arrow = 8;
         m.groove = 2;
         m.scroll = 6;
-        m.tab = 28;
         m.title = 30;
         m.row = 22;
         m.margin = 12;
@@ -192,22 +180,6 @@ void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Lo
     }
 }
 
-void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setBrush(c.sunken);
-    p.setPen(QPen(!look.enabled ? c.buttonDisabledBorder : look.focusVisible ? c.selectedLine : look.hover ? c.fieldHover : c.panelBorder, 1));
-    p.drawEllipse(r);
-    if (on) {
-        p.setPen(Qt::NoPen);
-        p.setBrush(look.enabled ? c.signal : c.textDisabled);
-        p.drawEllipse(r.center(), r.width() * 0.25, r.height() * 0.25);
-    }
-    p.restore();
-}
-
 void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const
 {
     const QRectF r(rect);
@@ -257,50 +229,6 @@ void Style::scrollBar(QPainter& p, const QRect&, const QRect& handle, Qt::Orient
     p.fillRect(handle.adjusted(1, 1, -1, -1), look.pressed || look.hover ? c.selectedLine : c.panelBorder);
 }
 
-void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const
-{
-    p.fillRect(band(rect, orientation, 6), c.divider);
-    if (!filled.isEmpty()) {
-        p.fillRect(band(filled, orientation, 6), c.signal);
-    }
-}
-
-void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const
-{
-    // docked tabs: the selected one on a slate fill over a steel-blue indicator
-    if (selected) {
-        p.fillRect(rect, c.selected);
-        p.fillRect(QRect(rect.left(), rect.bottom() - 1, rect.width(), 2), c.selectedLine);
-    }
-    if (look.focusVisible) {
-        hairline(p, rect, c.selectedLine);
-    }
-}
-
-void Style::tabPane(QPainter& p, const QWidget*, const QRect& rect) const
-{
-    p.fillRect(rect, c.panel);
-    hairline(p, rect, c.panelBorder);
-}
-
-void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
-{
-    const QRectF ring = QRectF(rect).adjusted(8, 8, -8, -8);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(c.divider, 2, Qt::SolidLine, Qt::FlatCap));
-    p.drawArc(ring, 225 * 16, -270 * 16);
-    if (value > 0) {
-        p.setPen(QPen(look.enabled ? c.selectedLine : c.panelBorder, 2, Qt::SolidLine, Qt::FlatCap));
-        p.drawArc(ring, 225 * 16, int(-270 * 16 * value));
-    }
-    const QPointF at = dialPoint(ring, value, ring.width() / 2);
-    p.setPen(Qt::NoPen);
-    p.setBrush(!look.enabled ? c.textDisabled : look.pressed || look.hover ? c.textTitle : c.text);
-    p.drawRect(QRectF(at - QPointF(5, 5), QSizeF(10, 10)));
-    p.restore();
-}
-
 void Style::display(QPainter& p, const QRect& rect) const
 {
     p.fillRect(rect, c.sunken);
@@ -339,13 +267,6 @@ void Style::highlight(QPainter& p, const QRect& rect, bool inBar) const
 void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
 {
     p.fillRect(rect, look.checked ? c.selected : c.rowHover);
-}
-
-void Style::header(QPainter& p, const QRect& rect, const Look& look) const
-{
-    // no fill, no bold: a divider under the column names
-    p.fillRect(rect, look.hover ? c.rowHover : c.panel);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), c.divider);
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const

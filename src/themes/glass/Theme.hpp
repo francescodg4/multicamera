@@ -26,23 +26,18 @@ inline const QColor solidSurface { 0x10, 0x22, 0x38 }; ///< reduced-transparency
 
 // clay
 inline const QColor clay { 0x3d, 0x6f, 0x9e };
-inline const QColor clayRecessed { 0x22, 0x40, 0x60 }; ///< empty slots
-inline const QColor clayBadge { 0xf6, 0xa6, 0x23 };
 
 // radiance
 inline const QColor accent { 0x3b, 0x9b, 0xff };
 inline const QColor glowAccent { 0x3b, 0x9b, 0xff, 200 };
 inline const QColor glowSoft { 0x7f, 0xe6, 0xff, 130 }; ///< hover
-inline const QColor glowBadge { 0xf6, 0xa6, 0x23, 150 };
 
 // content
 inline const QColor text { 0xee, 0xf6, 0xff };
 inline const QColor textDim { 0xa8, 0xc4, 0xde };
-inline const QColor iconMuted { 255, 255, 255, 120 };
 inline const QColor cyan { 0x7f, 0xe6, 0xff };
 inline const QColor gold { 0xf3, 0xc7, 0x42 };
 inline const QColor green { 0x5e, 0xf0, 0xb4 };
-inline const QColor glowGreen { 0x5e, 0xf0, 0xb4, 190 };
 
 // geometry
 inline constexpr qreal radiusCard = 20;

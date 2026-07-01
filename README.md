@@ -38,8 +38,8 @@ checked by eye.
 
 ## Interface designs
 
-Each design draws every widget, and the camera cards, through its own `QStyle`, following
-its design rules. The choice, and the mode, are remembered.
+Each design draws the widgets of the inspector, and the camera cards, through its own `QStyle`,
+following its design rules. The choice, and the mode, are remembered.
 
 - **Liquid Glass** (`glass`): frosted cards over an ambient canvas, clay buttons, a radiant glow round
   the camera under inspection.
@@ -123,7 +123,7 @@ src/
     main.cpp            command line, screenshot mode
   WidgetStyle           base QStyle of the designs and their drawing vocabulary
   ThemeRegistry         the list of designs and their modes, applying one, the remembered choice
-  Icons                 vector icons (transport glyphs included)
+  Icons                 the transport glyphs, drawn as vectors
   themes/<id>/          one folder per design (Entry, Style, Theme tokens, drawing helpers)
 tests/
   tst_CameraPipeline    states, accurate seeks, frame steps on test cameras and a recording

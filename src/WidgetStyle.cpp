@@ -3,20 +3,13 @@
 #include <QAbstractItemView>
 #include <QAbstractSpinBox>
 #include <QComboBox>
-#include <QDial>
 #include <QGroupBox>
-#include <QHeaderView>
-#include <QLCDNumber>
 #include <QLineEdit>
 #include <QMenuBar>
 #include <QPainter>
 #include <QPushButton>
-#include <QScrollBar>
 #include <QSlider>
 #include <QStyleOption>
-#include <QTabBar>
-
-#include <cmath>
 
 namespace {
 
@@ -143,12 +136,6 @@ void WidgetStyle::lamp(QPainter& p, const QRect& rect, const QColor& color, bool
     p.restore();
 }
 
-QPointF WidgetStyle::dialPoint(const QRectF& rect, qreal value, qreal radius)
-{
-    const qreal angle = (225.0 - 270.0 * std::clamp(value, 0.0, 1.0)) * M_PI / 180.0;
-    return rect.center() + QPointF(std::cos(angle), -std::sin(angle)) * radius;
-}
-
 // ---- primitives ---------------------------------------------------------------------------------
 
 void WidgetStyle::drawPrimitive(PrimitiveElement element, const QStyleOption* option, QPainter* p, const QWidget* widget) const
@@ -167,10 +154,6 @@ void WidgetStyle::drawPrimitive(PrimitiveElement element, const QStyleOption* op
         button(*p, option->rect, kind, look);
         return;
     }
-    case PE_PanelButtonTool:
-    case PE_PanelButtonBevel:
-        button(*p, option->rect, Button::Normal, look);
-        return;
     case PE_PanelLineEdit:
         // the line edit of a spin box or an editable combo box lies on that control's field
         if (widget && (qobject_cast<const QAbstractSpinBox*>(widget->parentWidget()) || qobject_cast<const QComboBox*>(widget->parentWidget()))) {
@@ -184,9 +167,6 @@ void WidgetStyle::drawPrimitive(PrimitiveElement element, const QStyleOption* op
     case PE_IndicatorCheckBox:
     case PE_IndicatorItemViewItemCheck:
         check(*p, option->rect, option->state & State_NoChange ? Qt::PartiallyChecked : option->state & State_On ? Qt::Checked : Qt::Unchecked, look);
-        return;
-    case PE_IndicatorRadioButton:
-        radio(*p, option->rect, option->state & State_On, look);
         return;
     case PE_IndicatorArrowUp:
     case PE_IndicatorSpinUp:
@@ -204,44 +184,14 @@ void WidgetStyle::drawPrimitive(PrimitiveElement element, const QStyleOption* op
     case PE_IndicatorArrowRight:
         arrow(*p, centred(option->rect, std::min(m.arrow, std::min(option->rect.width(), option->rect.height()))), Qt::RightArrow, look);
         return;
-    case PE_FrameTabWidget:
-        tabPane(*p, widget, option->rect);
+    case PE_PanelItemViewItem:
+        // the rows of a combo box's list
+        if ((option->state & (State_Selected | State_MouseOver)) && look.enabled) {
+            Look row = look;
+            row.checked = option->state & State_Selected;
+            selection(*p, option->rect, row);
+        }
         return;
-    case PE_PanelItemViewItem: {
-        const auto* item = qstyleoption_cast<const QStyleOptionViewItem*>(option);
-        if (item && (item->features & QStyleOptionViewItem::Alternate)) {
-            p->fillRect(option->rect, option->palette.brush(QPalette::AlternateBase));
-        }
-        if (!(option->state & (State_Selected | State_MouseOver)) || !look.enabled) {
-            return;
-        }
-        // cells of one row share a single selection shape: open the sides that continue
-        // (tree views say where the cell is; for tables selecting rows it follows from the column)
-        auto position = item ? item->viewItemPosition : QStyleOptionViewItem::Invalid;
-        const auto* view = qobject_cast<const QAbstractItemView*>(widget);
-        if (position == QStyleOptionViewItem::Invalid && view && view->selectionBehavior() == QAbstractItemView::SelectRows && item->index.isValid()) {
-            const int last = item->index.model()->columnCount(item->index.parent()) - 1;
-            const int column = item->index.column();
-            position = last == 0 ? QStyleOptionViewItem::OnlyOne
-                : column == 0    ? QStyleOptionViewItem::Beginning
-                : column == last ? QStyleOptionViewItem::End
-                                 : QStyleOptionViewItem::Middle;
-        }
-        QRect shape = option->rect;
-        if (position == QStyleOptionViewItem::Middle || position == QStyleOptionViewItem::End) {
-            shape.setLeft(shape.left() - 32);
-        }
-        if (position == QStyleOptionViewItem::Middle || position == QStyleOptionViewItem::Beginning) {
-            shape.setRight(shape.right() + 32);
-        }
-        Look row = look;
-        row.checked = option->state & State_Selected;
-        p->save();
-        p->setClipRect(option->rect);
-        selection(*p, shape, row);
-        p->restore();
-        return;
-    }
     case PE_PanelMenu:
         menu(*p, option->rect);
         return;
@@ -253,11 +203,8 @@ void WidgetStyle::drawPrimitive(PrimitiveElement element, const QStyleOption* op
     case PE_FrameFocusRect:
     case PE_FrameLineEdit:
     case PE_FrameGroupBox:
-    case PE_FrameTabBarBase:
     case PE_FrameStatusBarItem:
     case PE_FrameMenu:
-    case PE_FrameButtonTool:
-    case PE_IndicatorButtonDropDown:
     case PE_PanelScrollAreaCorner:
     case PE_PanelMenuBar:
         return;
@@ -287,35 +234,6 @@ void WidgetStyle::drawControl(ControlElement element, const QStyleOption* option
             return;
         }
         break;
-    case CE_ProgressBarGroove:
-        return; // drawn with the contents
-    case CE_ProgressBarContents:
-        if (const auto* bar = qstyleoption_cast<const QStyleOptionProgressBar*>(option)) {
-            const bool horizontal = bar->state & State_Horizontal;
-            const qint64 range = qint64(bar->maximum) - bar->minimum;
-            const qreal fraction = range > 0 ? std::clamp(qreal(bar->progress - bar->minimum) / range, 0.0, 1.0) : 0.0;
-            const QRect r = option->rect;
-            QRect filled = r;
-            if (horizontal) {
-                const int w = int(std::lround(r.width() * fraction));
-                filled = bar->invertedAppearance ? QRect(r.right() - w + 1, r.top(), w, r.height()) : QRect(r.left(), r.top(), w, r.height());
-            } else {
-                const int h = int(std::lround(r.height() * fraction));
-                filled = bar->invertedAppearance ? QRect(r.left(), r.top(), r.width(), h) : QRect(r.left(), r.bottom() - h + 1, r.width(), h);
-            }
-            progress(*p, r, filled, horizontal ? Qt::Horizontal : Qt::Vertical);
-            return;
-        }
-        break;
-    case CE_TabBarTabShape:
-        tab(*p, option->rect, option->state & State_Selected, look);
-        return;
-    case CE_HeaderSection:
-        header(*p, option->rect, look);
-        return;
-    case CE_HeaderEmptyArea:
-        header(*p, option->rect, Look {});
-        return;
     case CE_MenuBarEmptyArea:
         menuBar(*p, widget, widget ? widget->rect() : option->rect);
         return;
@@ -370,12 +288,6 @@ void WidgetStyle::drawControl(ControlElement element, const QStyleOption* option
         break;
     case CE_MenuEmptyArea:
         return;
-    case CE_ShapedFrame:
-        if (qobject_cast<const QLCDNumber*>(widget)) {
-            display(*p, option->rect);
-            return;
-        }
-        break;
     default:
         break;
     }
@@ -403,32 +315,6 @@ void WidgetStyle::drawComplexControl(ComplexControl control, const QStyleOptionC
                 s->upsideDown ? filled.setTop(c.y()) : filled.setBottom(c.y());
             }
 
-            if (s->tickPosition != QSlider::NoTicks) {
-                QColor tick = s->palette.color(QPalette::WindowText);
-                tick.setAlphaF(0.35f);
-                const int interval = s->tickInterval > 0 ? s->tickInterval : std::max(1, s->pageStep);
-                const int span = horizontal ? track.width() : track.height();
-                for (int v = s->minimum; v <= s->maximum; v += interval) {
-                    const int pos = sliderPositionFromValue(s->minimum, s->maximum, v, span, s->upsideDown);
-                    if (horizontal) {
-                        const int x = track.left() + pos;
-                        if (s->tickPosition & QSlider::TicksAbove) {
-                            p->fillRect(QRect(x, knob.top() + 1, 1, track.top() - knob.top() - 3), tick);
-                        }
-                        if (s->tickPosition & QSlider::TicksBelow) {
-                            p->fillRect(QRect(x, track.bottom() + 3, 1, knob.bottom() - track.bottom() - 3), tick);
-                        }
-                    } else {
-                        const int y = track.top() + pos;
-                        if (s->tickPosition & QSlider::TicksLeft) {
-                            p->fillRect(QRect(knob.left() + 1, y, track.left() - knob.left() - 3, 1), tick);
-                        }
-                        if (s->tickPosition & QSlider::TicksRight) {
-                            p->fillRect(QRect(track.right() + 3, y, knob.right() - track.right() - 3, 1), tick);
-                        }
-                    }
-                }
-            }
             groove(*p, track, filled, s->orientation, look);
             Look h = look;
             h.hover = look.hover && (s->activeSubControls & SC_SliderHandle);
@@ -477,43 +363,6 @@ void WidgetStyle::drawComplexControl(ComplexControl control, const QStyleOptionC
             };
             spinButton(*p, proxy()->subControlRect(CC_SpinBox, s, SC_SpinBoxUp, widget), Qt::UpArrow, part(SC_SpinBoxUp, QAbstractSpinBox::StepUpEnabled));
             spinButton(*p, proxy()->subControlRect(CC_SpinBox, s, SC_SpinBoxDown, widget), Qt::DownArrow, part(SC_SpinBoxDown, QAbstractSpinBox::StepDownEnabled));
-            return;
-        }
-        break;
-    case CC_Dial:
-        if (const auto* s = qstyleoption_cast<const QStyleOptionSlider*>(option)) {
-            const qint64 range = qint64(s->maximum) - s->minimum;
-            const qreal value = range > 0 ? qreal(s->sliderPosition - s->minimum) / range : 0.0;
-            dial(*p, centred(s->rect, std::min(s->rect.width(), s->rect.height())), value, look);
-            return;
-        }
-        break;
-    case CC_ToolButton:
-        if (const auto* t = qstyleoption_cast<const QStyleOptionToolButton*>(option)) {
-            const QRect face = proxy()->subControlRect(CC_ToolButton, t, SC_ToolButton, widget);
-            const QRect menuPart = proxy()->subControlRect(CC_ToolButton, t, SC_ToolButtonMenu, widget);
-            const bool split = t->features & QStyleOptionToolButton::MenuButtonPopup;
-            Look l = look;
-            l.pressed = look.enabled && (t->state & State_Sunken) && (!split || (t->activeSubControls & SC_ToolButton));
-            l.pressed = l.pressed || (look.enabled && split && (t->activeSubControls & SC_ToolButtonMenu) && (t->state & State_Sunken));
-            if (!(t->state & State_AutoRaise) || l.hover || l.pressed || l.checked) {
-                button(*p, t->rect, Button::Normal, l);
-            }
-            if (split) {
-                QColor line = buttonText(Button::Normal, l, t->palette);
-                line.setAlphaF(0.3f);
-                p->fillRect(QRect(menuPart.left(), menuPart.top() + menuPart.height() / 4, 1, menuPart.height() / 2), line);
-                arrow(*p, centred(menuPart, m.arrow), Qt::DownArrow, l);
-            } else if (t->features & QStyleOptionToolButton::HasMenu) {
-                arrow(*p, QRect(t->rect.right() - m.arrow - 4, t->rect.bottom() - m.arrow - 4, m.arrow, m.arrow), Qt::DownArrow, l);
-            }
-            QStyleOptionToolButton label(*t);
-            label.rect = face.adjusted(m.frame, m.frame, -m.frame, -m.frame);
-            label.palette.setColor(QPalette::ButtonText, buttonText(Button::Normal, l, t->palette));
-            if (l.pressed && m.pressShift) {
-                label.rect.translate(m.pressShift, m.pressShift);
-            }
-            proxy()->drawControl(CE_ToolButtonLabel, &label, p, widget);
             return;
         }
         break;
@@ -650,21 +499,12 @@ QSize WidgetStyle::sizeFromContents(ContentsType type, const QStyleOption* optio
         QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
         return QSize(std::max(s.width(), 2 * m.control), std::max(s.height(), m.control));
     }
-    case CT_ToolButton: {
-        const QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
-        return QSize(s.width() + m.padding, std::max(s.height(), m.control));
-    }
     case CT_LineEdit:
         return QSize(size.width() + m.padding + 2 * m.frame, std::max(size.height() + 2 * m.frame, m.control));
     case CT_ComboBox:
     case CT_SpinBox:
         return QSize(size.width() + m.padding + arrowWidth(QRect(0, 0, m.control, m.control)) + 2 * m.frame + 4, std::max(size.height() + 2 * m.frame, m.control));
-    case CT_TabBarTab: {
-        const QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
-        return QSize(s.width(), std::max(s.height(), m.tab));
-    }
-    case CT_ItemViewItem:
-    case CT_HeaderSection: {
+    case CT_ItemViewItem: {
         const QSize s = QProxyStyle::sizeFromContents(type, option, size, widget);
         return QSize(s.width(), std::max(s.height(), m.row));
     }
@@ -699,11 +539,8 @@ int WidgetStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, con
         return m.frame;
     case PM_IndicatorWidth:
     case PM_IndicatorHeight:
-    case PM_ExclusiveIndicatorWidth:
-    case PM_ExclusiveIndicatorHeight:
         return m.indicator;
     case PM_CheckBoxLabelSpacing:
-    case PM_RadioButtonLabelSpacing:
         return 8;
     case PM_SliderLength:
     case PM_SliderThickness:
@@ -718,17 +555,7 @@ int WidgetStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, con
         return m.scroll;
     case PM_ScrollBarSliderMin:
         return 32;
-    case PM_MenuButtonIndicator:
-        return m.control * 2 / 3;
-    case PM_TabBarTabHSpace:
-        return 2 * m.padding;
-    case PM_TabBarBaseOverlap:
-    case PM_TabBarTabShiftHorizontal:
-    case PM_TabBarTabShiftVertical:
-    case PM_TabBarBaseHeight:
     case PM_MenuBarPanelWidth:
-        return 0;
-    case PM_TabBarTabOverlap:
         return 0;
     case PM_LayoutLeftMargin:
     case PM_LayoutTopMargin:
@@ -758,15 +585,9 @@ int WidgetStyle::pixelMetric(PixelMetric metric, const QStyleOption* option, con
 int WidgetStyle::styleHint(StyleHint hint, const QStyleOption* option, const QWidget* widget, QStyleHintReturn* returnData) const
 {
     switch (hint) {
-    case SH_Table_GridLineColor: {
-        QColor grid = (option ? option->palette : standardPalette()).color(QPalette::Text);
-        grid.setAlphaF(0.12f);
-        return int(grid.rgba());
-    }
     case SH_Slider_AbsoluteSetButtons:
         return Qt::LeftButton;
     case SH_ScrollBar_LeftClickAbsolutePosition:
-    case SH_ItemView_ShowDecorationSelected:
         return true;
     case SH_ScrollBar_Transient:
     case SH_DialogButtonBox_ButtonsHaveIcons:
@@ -781,8 +602,7 @@ void WidgetStyle::polish(QWidget* widget)
 {
     QProxyStyle::polish(widget);
     if (qobject_cast<QAbstractButton*>(widget) || qobject_cast<QComboBox*>(widget) || qobject_cast<QAbstractSpinBox*>(widget)
-        || qobject_cast<QAbstractSlider*>(widget) || qobject_cast<QTabBar*>(widget) || qobject_cast<QLineEdit*>(widget)
-        || qobject_cast<QHeaderView*>(widget) || qobject_cast<QMenuBar*>(widget)) {
+        || qobject_cast<QAbstractSlider*>(widget) || qobject_cast<QLineEdit*>(widget) || qobject_cast<QMenuBar*>(widget)) {
         widget->setAttribute(Qt::WA_Hover);
     }
     if (auto* view = qobject_cast<QAbstractItemView*>(widget)) {
@@ -794,18 +614,12 @@ void WidgetStyle::polish(QWidget* widget)
             view->setPalette(palette);
         }
     }
-    if (auto* lcd = qobject_cast<QLCDNumber*>(widget)) {
-        lcd->setSegmentStyle(QLCDNumber::Flat);
-        QPalette palette = lcd->palette();
-        palette.setColor(QPalette::WindowText, displayText());
-        lcd->setPalette(palette);
-    }
 }
 
 void WidgetStyle::unpolish(QWidget* widget)
 {
     const auto* view = qobject_cast<QAbstractItemView*>(widget);
-    if (qobject_cast<QLCDNumber*>(widget) || (view && isComboPopup(view))) {
+    if (view && isComboPopup(view)) {
         widget->setPalette(QPalette());
     }
     QProxyStyle::unpolish(widget);

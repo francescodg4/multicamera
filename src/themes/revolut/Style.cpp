@@ -38,7 +38,6 @@ Style::Style(bool dark)
         m.arrow = 10;
         m.groove = 6;
         m.scroll = 10;
-        m.tab = 34;
         m.title = 36;
         m.row = 28;
         m.margin = 16;
@@ -204,22 +203,6 @@ void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Lo
     p.restore();
 }
 
-void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(1, 1, -1, -1);
-    if (!on) {
-        surface(p, r, pill(r), c.widget, look.hover ? c.accent : alpha(c.text3, 170), look.focusVisible);
-        return;
-    }
-    surface(p, r, pill(r), look.enabled ? c.accent : alpha(c.accent, 110), Qt::transparent, look.focusVisible);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(Qt::NoPen);
-    p.setBrush(Theme::onAccent);
-    p.drawEllipse(r.center(), r.width() * 0.2, r.width() * 0.2);
-    p.restore();
-}
-
 void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const
 {
     const QRectF r(rect);
@@ -278,57 +261,6 @@ void Style::scrollBar(QPainter& p, const QRect&, const QRect& handle, Qt::Orient
     surface(p, r, pill(r), look.pressed ? c.accent : look.hover ? c.text3 : alpha(c.text3, 120));
 }
 
-void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation) const
-{
-    const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    surface(p, r, pill(r), c.track);
-    if (!filled.isEmpty()) {
-        const QRectF f = QRectF(filled).adjusted(0.5, 0.5, -0.5, -0.5);
-        surface(p, f, pill(r), c.accent);
-    }
-}
-
-void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const
-{
-    // segmented pills: the selected one is a raised app widget
-    const QRectF r = QRectF(rect).adjusted(2, 3, -2, -3);
-    if (selected) {
-        shadow(p, r, pill(r), 1);
-        surface(p, r, pill(r), c.dark ? c.chipHover : c.widget, Qt::transparent, look.focusVisible);
-    } else if (look.hover) {
-        surface(p, r, pill(r), c.chip);
-    }
-}
-
-void Style::tabPane(QPainter& p, const QWidget*, const QRect& rect) const
-{
-    surface(p, QRectF(rect), Theme::radiusWidget, c.widget, c.line);
-}
-
-void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
-{
-    const QRectF ring = QRectF(rect).adjusted(8, 8, -8, -8);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(c.track, 6, Qt::SolidLine, Qt::RoundCap));
-    p.drawArc(ring, 225 * 16, -270 * 16);
-    if (value > 0) {
-        p.setPen(QPen(look.enabled ? c.accent : alpha(c.accent, 110), 6, Qt::SolidLine, Qt::RoundCap));
-        p.drawArc(ring, 225 * 16, int(-270 * 16 * value));
-    }
-    p.restore();
-
-    const QRectF knob = ring.adjusted(ring.width() * 0.2, ring.height() * 0.2, -ring.width() * 0.2, -ring.height() * 0.2);
-    shadow(p, knob, pill(knob), 2);
-    surface(p, knob, pill(knob), c.widget, look.hover ? c.accent : c.line, look.focusVisible);
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(Qt::NoPen);
-    p.setBrush(look.enabled ? c.accent : c.text3);
-    p.drawEllipse(dialPoint(knob, value, knob.width() * 0.3), 3.5, 3.5);
-    p.restore();
-}
-
 void Style::display(QPainter& p, const QRect& rect) const
 {
     // an app widget: numbers stand out in violet on the widget surface
@@ -375,12 +307,6 @@ void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
 {
     const QRectF r = QRectF(rect).adjusted(1, 1, -1, -1);
     surface(p, r, Theme::radiusItem, look.checked ? c.accent : c.chip);
-}
-
-void Style::header(QPainter& p, const QRect& rect, const Look& look) const
-{
-    p.fillRect(rect, look.hover ? alpha(c.tint, c.dark ? 200 : 255) : c.widget);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), c.line);
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const

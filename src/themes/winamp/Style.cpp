@@ -63,7 +63,6 @@ Style::Style()
         m.arrow = 9;
         m.groove = 6;
         m.scroll = 14;
-        m.tab = 28;
         m.title = 30;
         m.row = 22;
         m.margin = 12;
@@ -212,18 +211,6 @@ void Style::check(QPainter& p, const QRect& rect, Qt::CheckState state, const Lo
     p.restore();
 }
 
-void Style::radio(QPainter& p, const QRect& rect, bool on, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    p.save();
-    if (!look.enabled) {
-        p.setOpacity(0.55);
-    }
-    Metal::roundButton(p, r, look.pressed, false, look.hover);
-    Metal::led(p, r.center(), r.width() * 0.2, Theme::lcdGlow, on && look.enabled);
-    p.restore();
-}
-
 void Style::arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const
 {
     const QRectF r(rect);
@@ -310,86 +297,6 @@ void Style::scrollBar(QPainter& p, const QRect& groove, const QRect& handle, Qt:
     this->handle(p, orientation == Qt::Horizontal ? handle.adjusted(0, 1, 0, -1) : handle.adjusted(1, 0, -1, 0), orientation, look);
 }
 
-void Style::progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const
-{
-    const QRectF r = QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5);
-    Metal::lcd(p, r, Theme::radiusPanel);
-    // VU-meter segments, lit up to the value
-    const QRectF inner = r.adjusted(4, 4, -4, -4);
-    const QRectF lit(filled);
-    constexpr qreal Segment = 4, Gap = 2;
-    p.save();
-    const bool horizontal = orientation == Qt::Horizontal;
-    const qreal length = horizontal ? inner.width() : inner.height();
-    for (qreal s = 0; s + Segment <= length; s += Segment + Gap) {
-        const QRectF seg = horizontal ? QRectF(inner.left() + s, inner.top(), Segment, inner.height())
-                                      : QRectF(inner.left(), inner.bottom() - s - Segment, inner.width(), Segment);
-        const bool on = horizontal ? seg.center().x() <= lit.right() && !lit.isEmpty() : seg.center().y() >= lit.top() && !lit.isEmpty();
-        if (on) {
-            QLinearGradient g(seg.topLeft(), seg.bottomLeft());
-            g.setColorAt(0, fillTop);
-            g.setColorAt(1, Theme::accent);
-            p.fillRect(seg, g);
-        } else {
-            p.fillRect(seg, Theme::lcdDim);
-        }
-    }
-    p.restore();
-}
-
-void Style::tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const
-{
-    // the skin's slanted tabs, wider at the base
-    const QRectF r = QRectF(rect).adjusted(-4, selected ? 1.5 : 4.5, 4, 0.5);
-    const qreal slant = r.height() * 0.45;
-    QPainterPath shape;
-    shape.moveTo(r.left(), r.bottom());
-    shape.lineTo(r.left() + slant, r.top() + 3);
-    shape.quadTo(r.left() + slant + 2, r.top(), r.left() + slant + 6, r.top());
-    shape.lineTo(r.right() - slant - 6, r.top());
-    shape.quadTo(r.right() - slant - 2, r.top(), r.right() - slant, r.top() + 3);
-    shape.lineTo(r.right(), r.bottom());
-    QLinearGradient g(r.topLeft(), r.bottomLeft());
-    g.setColorAt(0, selected ? QColor(0xf8, 0xfa, 0xfd) : look.hover ? QColor(0xe8, 0xec, 0xf2) : QColor(0xc8, 0xcf, 0xda));
-    g.setColorAt(1, selected ? Theme::frameTop : QColor(0xa8, 0xb1, 0xbf));
-    p.save();
-    p.setRenderHint(QPainter::Antialiasing);
-    p.fillPath(shape, g);
-    p.strokePath(shape, QPen(Theme::outline, 1));
-    p.strokePath(shape.translated(0, 1), QPen(QColor(255, 255, 255, 140), 1));
-    p.restore();
-}
-
-void Style::tabPane(QPainter& p, const QWidget*, const QRect& rect) const
-{
-    Metal::frame(p, QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), Theme::radiusPanel);
-}
-
-void Style::dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const
-{
-    const QRectF r = QRectF(rect).adjusted(4, 4, -4, -4);
-    // LED ring, lit up to the value
-    constexpr int Leds = 13;
-    for (int i = 0; i < Leds; ++i) {
-        const qreal v = qreal(i) / (Leds - 1);
-        Metal::led(p, dialPoint(r, v, r.width() / 2 - 3), 2.2, Theme::lcdGlow, look.enabled && v <= value + 1e-6);
-    }
-    // bevel-edged metal knob with its pointer
-    const QRectF knob = r.adjusted(r.width() * 0.17, r.height() * 0.17, -r.width() * 0.17, -r.height() * 0.17);
-    p.save();
-    if (!look.enabled) {
-        p.setOpacity(0.6);
-    }
-    Metal::roundButton(p, knob, look.pressed, false, look.hover);
-    p.setRenderHint(QPainter::Antialiasing);
-    p.setPen(QPen(look.enabled ? Theme::accent : Theme::textDim, 3, Qt::SolidLine, Qt::RoundCap));
-    p.drawLine(dialPoint(knob, value, knob.width() * 0.12), dialPoint(knob, value, knob.width() * 0.36));
-    p.restore();
-    if (look.focus) {
-        glowRing(p, knob, knob.width() / 2, 150);
-    }
-}
-
 void Style::display(QPainter& p, const QRect& rect) const
 {
     Metal::lcd(p, QRectF(rect).adjusted(0.5, 0.5, -0.5, -0.5), Theme::radiusPanel);
@@ -435,17 +342,6 @@ void Style::selection(QPainter& p, const QRect& rect, const Look& look) const
         p.fillPath(rounded(r, 3), alpha(Theme::lcdGlow, 22));
     }
     p.restore();
-}
-
-void Style::header(QPainter& p, const QRect& rect, const Look& look) const
-{
-    QLinearGradient g(rect.topLeft(), rect.bottomLeft());
-    g.setColorAt(0, look.hover ? QColor(0xff, 0xff, 0xff) : QColor(0xf4, 0xf6, 0xfa));
-    g.setColorAt(1, look.hover ? QColor(0xd0, 0xd6, 0xe0) : QColor(0xc3, 0xca, 0xd6));
-    p.fillRect(rect, g);
-    p.fillRect(QRect(rect.left(), rect.bottom(), rect.width(), 1), Theme::outline);
-    p.fillRect(QRect(rect.right(), rect.top() + 3, 1, rect.height() - 6), alpha(Theme::bevelDark, 120));
-    p.fillRect(QRect(rect.left(), rect.top(), rect.width(), 1), Qt::white);
 }
 
 void Style::tooltip(QPainter& p, const QRect& rect) const

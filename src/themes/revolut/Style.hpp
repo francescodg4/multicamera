@@ -24,16 +24,11 @@ public:
     void field(QPainter& p, const QRect& rect, const Look& look) const override;
     void view(QPainter& p, const QRect& rect, const Look& look) const override;
     void check(QPainter& p, const QRect& rect, Qt::CheckState state, const Look& look) const override;
-    void radio(QPainter& p, const QRect& rect, bool on, const Look& look) const override;
     void arrow(QPainter& p, const QRect& rect, Qt::ArrowType type, const Look& look) const override;
     void groove(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation, const Look& look) const override;
     void handle(QPainter& p, const QRect& rect, Qt::Orientation orientation, const Look& look) const override;
     QSize handleSize(Qt::Orientation orientation) const override;
     void scrollBar(QPainter& p, const QRect& groove, const QRect& handle, Qt::Orientation orientation, const Look& look) const override;
-    void progress(QPainter& p, const QRect& rect, const QRect& filled, Qt::Orientation orientation) const override;
-    void tab(QPainter& p, const QRect& rect, bool selected, const Look& look) const override;
-    void tabPane(QPainter& p, const QWidget* widget, const QRect& rect) const override;
-    void dial(QPainter& p, const QRect& rect, qreal value, const Look& look) const override;
     void display(QPainter& p, const QRect& rect) const override;
     QColor displayText() const override;
     void menuBar(QPainter& p, const QWidget* widget, const QRect& rect) const override;
@@ -41,7 +36,6 @@ public:
     void menu(QPainter& p, const QRect& rect) const override;
     void highlight(QPainter& p, const QRect& rect, bool inBar) const override;
     void selection(QPainter& p, const QRect& rect, const Look& look) const override;
-    void header(QPainter& p, const QRect& rect, const Look& look) const override;
     void tooltip(QPainter& p, const QRect& rect) const override;
     void focusFrame(QPainter& p, const QRect& rect) const override;
     QColor ownMark() const override;
