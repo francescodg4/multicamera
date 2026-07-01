@@ -209,6 +209,22 @@ private slots:
         }
     }
 
+    void metroLiveTiles()
+    {
+        const ThemeEntry* metro = Themes::find(QStringLiteral("metro"));
+        QVERIFY(metro && metro->modes);
+        for (const bool dark : { true, false }) {
+            m_window->setTheme(metro->id, dark);
+            QCOMPARE(QApplication::palette().color(QPalette::Window), dark ? QColor(0x1d, 0x1d, 0x1d) : QColor(0xf2, 0xf2, 0xf2));
+            // each camera is a live tile in its own flat accent colour, in both modes
+            const QList<CameraTile*>& tiles = m_window->grid()->tiles();
+            const QColor first = tiles[0]->grab().toImage().pixelColor(2, 2);
+            const QColor second = tiles[1]->grab().toImage().pixelColor(2, 2);
+            QCOMPARE(first, QColor(0x00, 0xb7, 0xc3));
+            QCOMPARE(second, QColor(0xd8, 0x00, 0x73));
+        }
+    }
+
     void revolutHasTwoModes()
     {
         QVERIFY(!Themes::find(QStringLiteral("emerald")));

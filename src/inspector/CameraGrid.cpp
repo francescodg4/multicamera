@@ -10,7 +10,7 @@ CameraGrid::CameraGrid(const QList<CameraPipeline*>& cameras, QWidget* parent)
     : QWidget(parent)
 {
     for (int i = 0; i < cameras.size(); ++i) {
-        auto* tile = new CameraTile(cameras[i], this);
+        auto* tile = new CameraTile(cameras[i], i, this);
         connect(tile, &CameraTile::clicked, this, [this, i] { emit cameraClicked(i); });
         connect(tile, &CameraTile::doubleClicked, this, [this, i] { emit cameraDoubleClicked(i); });
         m_tiles << tile;

@@ -57,6 +57,11 @@ public:
     virtual void window(QPainter& p, const QWidget* widget, const QRect& rect) const = 0;
     /// Group box: the container and its title (drawn inside @p titleRect, the top band).
     virtual void card(QPainter& p, const QWidget* widget, const QRect& rect, const QRect& titleRect, const QString& title) const = 0;
+    /// A card showing item @p index of a board (a camera): a design may give each its own colour.
+    /// By default, a card().
+    virtual void tile(QPainter& p, const QWidget* widget, const QRect& rect, const QRect& titleRect, const QString& title, int index) const;
+    /// Colour of glyphs drawn on a tile() (its controls' icons). By default, the button text.
+    virtual QColor tileText() const;
     virtual void button(QPainter& p, const QRect& rect, Button kind, const Look& look) const = 0;
     virtual QColor buttonText(Button kind, const Look& look, const QPalette& palette) const;
     /// Line edits, spin boxes and editable combo boxes.

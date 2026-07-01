@@ -161,6 +161,13 @@ void CameraControls::changeEvent(QEvent* event)
     QWidget::changeEvent(event);
 }
 
+QColor CameraControls::ink() const
+{
+    // the controls lie on the camera's card: glyphs in the colour the design gives tiles
+    const auto* style = qobject_cast<const WidgetStyle*>(this->style());
+    return style ? style->tileText() : palette().color(QPalette::ButtonText);
+}
+
 void CameraControls::tintIcons()
 {
     // round keys, as wide as the design's controls are high
@@ -169,7 +176,7 @@ void CameraControls::tintIcons()
     for (QPushButton* button : { m_previous, m_play, m_stop, m_next }) {
         button->setFixedSize(size, size);
     }
-    const QColor ink = palette().color(QPalette::ButtonText);
+    const QColor ink = this->ink();
     m_previous->setIcon(Icons::icon(Icon::FramePrevious, ink));
     m_stop->setIcon(Icons::icon(Icon::Stop, ink));
     m_next->setIcon(Icons::icon(Icon::FrameNext, ink));
@@ -179,7 +186,7 @@ void CameraControls::tintIcons()
 void CameraControls::updateTransport()
 {
     const bool playing = m_camera->state() == CameraPipeline::State::Playing;
-    m_play->setIcon(Icons::icon(playing ? Icon::Pause : Icon::Play, palette().color(QPalette::ButtonText)));
+    m_play->setIcon(Icons::icon(playing ? Icon::Pause : Icon::Play, ink()));
     m_play->setToolTip(playing ? tr("Pause (Space)") : tr("Play (Space)"));
 }
 

@@ -64,9 +64,10 @@ void chip(QPainter& p, const QRect& rect)
 
 } // namespace
 
-CameraTile::CameraTile(CameraPipeline* camera, QWidget* parent)
+CameraTile::CameraTile(CameraPipeline* camera, int index, QWidget* parent)
     : QWidget(parent)
     , m_camera(camera)
+    , m_index(index)
 {
     setFocusPolicy(Qt::ClickFocus);
     setCursor(Qt::PointingHandCursor);
@@ -150,7 +151,7 @@ void CameraTile::paintChrome()
     const QRect card = cardRect();
     const QRect title(card.topLeft(), QSize(card.width(), style->metrics().title));
     const QString caption = fontMetrics().elidedText(QStringLiteral("%1 · %2").arg(m_camera->source().name, m_camera->source().label), Qt::ElideRight, card.width() - 72);
-    style->card(p, this, card, title, caption);
+    style->tile(p, this, card, title, caption, m_index);
     style->display(p, screenRect());
     if (m_selected) {
         style->focusFrame(p, card.adjusted(RingInset, RingInset, -RingInset, -RingInset));

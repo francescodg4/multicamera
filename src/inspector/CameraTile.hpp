@@ -15,7 +15,8 @@ class CameraPipeline;
 class CameraTile : public QWidget {
     Q_OBJECT
 public:
-    explicit CameraTile(CameraPipeline* camera, QWidget* parent = nullptr);
+    /// Camera number @p index (from 0) of the board.
+    CameraTile(CameraPipeline* camera, int index, QWidget* parent = nullptr);
 
     CameraPipeline* camera() const { return m_camera; }
     CameraControls* controls() const { return m_controls; }
@@ -51,6 +52,7 @@ private:
 
     CameraPipeline* m_camera;
     CameraControls* m_controls;
+    int m_index; ///< place on the board: designs may colour each camera's card
     bool m_selected = false;
     QPixmap m_chrome;
 };

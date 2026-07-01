@@ -43,7 +43,8 @@ private:
     void updateTransport(); ///< play / pause button for the camera's state
     void updateDuration(); ///< time bar range
     void updatePosition(); ///< time bar and readout for the picture shown
-    void tintIcons(); ///< keys follow the design: its control height and text colour
+    void tintIcons(); ///< keys follow the design: its control height and tile text colour
+    QColor ink() const;
     void beginScrub();
     void scrub(int ms);
     void endScrub();

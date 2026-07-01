@@ -31,6 +31,9 @@ qt_add_library(themes STATIC
   src/themes/glass/Style.cpp src/themes/glass/Style.hpp
   src/themes/glass/Theme.cpp src/themes/glass/Theme.hpp
   src/themes/glass/widgets/Glass.cpp src/themes/glass/widgets/Glass.hpp
+  src/themes/metro/Entry.cpp
+  src/themes/metro/Style.cpp src/themes/metro/Style.hpp
+  src/themes/metro/Theme.cpp src/themes/metro/Theme.hpp
   src/themes/revolut/Entry.cpp
   src/themes/revolut/Style.cpp src/themes/revolut/Style.hpp
   src/themes/revolut/Theme.cpp src/themes/revolut/Theme.hpp

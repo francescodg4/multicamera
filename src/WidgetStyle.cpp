@@ -87,6 +87,16 @@ QColor WidgetStyle::menuBarText(bool) const
     return standardPalette().color(QPalette::WindowText);
 }
 
+void WidgetStyle::tile(QPainter& p, const QWidget* widget, const QRect& rect, const QRect& titleRect, const QString& title, int) const
+{
+    card(p, widget, rect, titleRect, title);
+}
+
+QColor WidgetStyle::tileText() const
+{
+    return standardPalette().color(QPalette::ButtonText);
+}
+
 void WidgetStyle::focusFrame(QPainter& p, const QRect& rect) const
 {
     p.save();
