@@ -9,6 +9,8 @@ The cameras are the recordings in [videos/](videos/) plus synthetic GStreamer te
 (`videotestsrc`), which burn their buffer time into the picture so every seek and step can be
 checked by eye.
 
+![The inspector in the Flat design: nine cameras, the fourth under inspection with its player controls](docs/inspector.png)
+
 ## Using it
 
 - **Control room**: play, pause or stop every camera at once, choose the board layout (automatic or
