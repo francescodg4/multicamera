@@ -1,6 +1,9 @@
 cmake_minimum_required(VERSION 3.21)
 
-project(MulticamInspection VERSION 0.2.0 LANGUAGES CXX)
+project(MulticamInspection
+  VERSION 1.0.0
+  DESCRIPTION "Multicamera inspection on GStreamer and Qt 6, picture by picture"
+  LANGUAGES CXX)
 
 set(CMAKE_CXX_STANDARD 20)
 set(CMAKE_CXX_STANDARD_REQUIRED ON)
@@ -76,7 +79,43 @@ target_link_libraries(inspector PRIVATE inspection)
 project_warnings(inspector)
 
 set_target_properties(inspector PROPERTIES WIN32_EXECUTABLE ON MACOSX_BUNDLE ON)
-install(TARGETS inspector RUNTIME DESTINATION bin BUNDLE DESTINATION .)
+
+# ---- install: the inspector, its menu entry and its documentation
+include(GNUInstallDirs)
+install(TARGETS inspector RUNTIME DESTINATION ${CMAKE_INSTALL_BINDIR} BUNDLE DESTINATION .)
+if(UNIX AND NOT APPLE)
+  install(FILES packaging/multicam-inspection.desktop DESTINATION ${CMAKE_INSTALL_DATADIR}/applications)
+endif()
+install(FILES README.md CHANGELOG.md DESTINATION ${CMAKE_INSTALL_DATADIR}/doc/multicam-inspection)
+
+# ---- package: cmake --build build --target package (DEB and TGZ on Linux, ZIP on Windows)
+set(CPACK_PACKAGE_NAME multicam-inspection)
+set(CPACK_PACKAGE_VENDOR "Francesco de Gioia")
+set(CPACK_PACKAGE_CONTACT "Francesco de Gioia <francescodg4@gmail.com>")
+set(CPACK_PACKAGE_DESCRIPTION_SUMMARY "${PROJECT_DESCRIPTION}")
+set(CPACK_PACKAGE_INSTALL_DIRECTORY "Multicamera Inspection")
+set(CPACK_RESOURCE_FILE_README ${CMAKE_CURRENT_SOURCE_DIR}/README.md)
+set(CPACK_PACKAGE_DIRECTORY ${CMAKE_BINARY_DIR}/packages)
+set(CPACK_STRIP_FILES ON)
+if(WIN32)
+  set(CPACK_GENERATOR ZIP)
+elseif(APPLE)
+  set(CPACK_GENERATOR DragNDrop)
+else()
+  set(CPACK_GENERATOR DEB TGZ)
+endif()
+
+# Debian: linked libraries found by dpkg-shlibdeps; the GStreamer plugins are loaded at run time
+set(CPACK_DEBIAN_FILE_NAME DEB-DEFAULT)
+set(CPACK_DEBIAN_PACKAGE_SHLIBDEPS ON)
+set(CPACK_DEBIAN_PACKAGE_DEPENDS
+  "gstreamer1.0-plugins-base, gstreamer1.0-plugins-good, gstreamer1.0-libav, gstreamer1.0-x")
+set(CPACK_DEBIAN_PACKAGE_RECOMMENDS "fonts-inter")
+set(CPACK_DEBIAN_PACKAGE_SECTION video)
+set(CPACK_DEBIAN_PACKAGE_DESCRIPTION
+  "An array of cameras, each a GStreamer pipeline, on a board drawn in one of five\ninterface designs. Click a camera to inspect it: play it, move along its time bar\nand step through it picture by picture.")
+
+include(CPack)
 
 # ---- tests: Catch2, run inside a QApplication (tests/test_main.cpp)
 if(BUILD_TESTING)

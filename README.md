@@ -81,8 +81,9 @@ test:       videotestsrc pattern=… ! 640x360@25 ! timeoverlay ! videoconvert !
 ## Build & run
 
 The development environment is the Docker image of [.devcontainer/](.devcontainer/): Qt 6.4 and
-GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav), the Inter font, and Catch2 for the tests. Open the folder in
-the dev container, or build the image yourself:
+GStreamer 1.24 with the MP4 demuxer (plugins-good) and the H.264 decoder (libav), the Inter font,
+Catch2 for the tests and the tools CPack needs for the Debian package. Open the folder in the dev
+container, or build the image yourself:
 
 ```bash
 docker build -t qt6-gstreamer:v1.0 .devcontainer
@@ -111,6 +112,24 @@ ctest --test-dir build --output-on-failure
 | `--maximize` | show the camera of `--select` alone (single-camera mode) |
 | `--screenshot <dir>` | save `inspector-<theme>.png` and quit; `--theme all` saves every design (both modes of Revolut and Metro unless `--mode` is given); works with `-platform offscreen` |
 
+## Packages
+
+In the dev container, CPack builds the release packages into `build/packages/`:
+
+```bash
+SOURCE_DATE_EPOCH=$(git log -1 --format=%ct) cmake --build build --target package
+sudo apt install ./build/packages/multicam-inspection_1.0.0_amd64.deb   # on Ubuntu 24.04
+```
+
+| Package | |
+|---|---|
+| `multicam-inspection_<version>_amd64.deb` | Debian / Ubuntu: `/usr/bin/inspector`, its menu entry and the documentation; depends on Qt 6 and on the GStreamer base, good, libav and x plugins |
+| `multicam-inspection-<version>-Linux.tar.gz` | the same files, to unpack anywhere |
+
+The recordings are not packaged: the installed inspector reads `videos/` in the folder it is started
+from, or the folder given with `--videos`. `SOURCE_DATE_EPOCH` dates the packaged files to the
+release commit instead of the moment of the build.
+
 ## Code
 
 ```
@@ -127,6 +146,7 @@ src/
   ThemeRegistry         the list of designs and their modes, applying one, the remembered choice
   Icons                 the transport glyphs, drawn as vectors
   themes/<id>/          one folder per design (Entry, Style, Theme tokens, drawing helpers)
+packaging/              the menu entry of the Linux packages
 tests/
   test_main               Catch2 inside a QApplication; test_support: waiting on the event loop, clicks, shortcuts
   test_camera_pipeline    states, accurate seeks, frame steps on test cameras and a recording

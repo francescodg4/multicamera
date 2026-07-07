@@ -1,4 +1,5 @@
-# Qt 6 toolchain plus the GStreamer media backbone of the inspection system, and Catch2 for the tests.
+# Qt 6 toolchain plus the GStreamer media backbone of the inspection system, Catch2 for the tests and
+# what CPack needs to build the Debian package (file, for dpkg-shlibdeps).
 FROM qt6-opencv:v1.0
 
 RUN apt-get update \
@@ -13,4 +14,5 @@ RUN apt-get update \
         fonts-dejavu-core \
         fonts-inter \
         catch2 \
+        file \
     && rm -rf /var/lib/apt/lists/*

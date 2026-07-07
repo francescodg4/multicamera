@@ -1,0 +1,10 @@
+[Desktop Entry]
+Type=Application
+Name=Multicamera Inspection
+GenericName=Camera inspection
+Comment=Inspect an array of cameras picture by picture
+Exec=inspector
+Icon=camera-video
+Terminal=false
+Categories=AudioVideo;Video;Player;Qt;
+Keywords=camera;video;gstreamer;frame;inspection;
